@@ -12,4 +12,6 @@ public class ParseException : Exception
         Line = line;
         LineNumber = lineNumber;
     }
+
+    public override string Message => $"{base.Message} ({LineNumber}:{Line})";
 }
