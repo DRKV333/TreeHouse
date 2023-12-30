@@ -15,7 +15,11 @@ IDeserializer yamlDeserializerForJson = new DeserializerBuilder().WithAttempting
 new RootCommand()
 {
     new Command("validate").WithHandler(ValidateHandler),
-    new Command("check").WithHandler(CheckHandler)
+    new Command("check").WithHandler(CheckHandler),
+    new Command("build")
+    {
+        new Option<FileInfo>(new[] { "--output", "-o" }).Required()
+    }.WithHandler(BuildHandler)
 }
 .WithGlobalOption(new Option<DirectoryInfo>(new[] { "--definitions", "-d" }).Required().ExistingOnly())
 .Invoke(args);
@@ -68,6 +72,34 @@ void CheckHandler(DirectoryInfo defsDir)
     {
         Console.WriteLine(error.ToErrorMessage());
     }
+}
+
+void BuildHandler(DirectoryInfo defsDir, FileInfo output)
+{
+    PacketFormatDocument joinedDocument = new();
+
+    foreach (FileInfo file in defsDir.EnumerateFiles("*.yaml", new EnumerationOptions() { RecurseSubdirectories = true }))
+    {
+        if (file.Name.EndsWith(".schema.yaml"))
+            continue;
+
+        using TextReader reader = file.OpenText();
+        PacketFormatDocument document = yamlDeserializer.Deserialize<PacketFormatDocument>(reader);
+
+        foreach (var (key, value) in document.Packets)
+        {
+            joinedDocument.Packets.Add(key, value);
+        }
+
+        foreach (var (key, value) in document.Structures)
+        {
+            joinedDocument.Structures.Add(key, value);
+        }
+    }
+
+    IndexTemplate index = new(joinedDocument);
+    using TextWriter writer = output.CreateText();
+    index.Render(writer);
 }
 
 void PrintValidationError(EvaluationResults results, int indent = 1)
