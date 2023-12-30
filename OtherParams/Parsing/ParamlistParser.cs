@@ -13,7 +13,7 @@ public class ParamlistParser
     private static readonly Regex dataVer = new(@"^data_ver\s+(?<ver>\d+)$");
     private static readonly Regex defaultClass = new(@"^default(?<what>\w+)\s+(?<class>\w+)$");
     private static readonly Regex table = new(@"^table\s+(?<id>\d+)\s+(?<name>\w+)$");
-    private static readonly Regex clazz = new(@"^class\s+(?<name>\w+)\s+(?<property>\w+)\s+(?<value>.+)$");
+    private static readonly Regex clazz = new(@"^class\s+(?<name>\w+)\s+(?<attribute>\w+)\s+(?<value>.+)$");
     private static readonly Regex paramDecl = new(@"^paramid\s+(?<class>\w+)\.(?<param>\w+)\s+(?<id>\d+)$");
     private static readonly Regex help = new(@"^help\s+(?<class>\w+)\.(?<param>\w+)\s+""(?<help>.*)""$");
     private static readonly Regex paramDef = new(@"^(?<class>[\w\d]+)\.(?<param>[\w\d]+)\s+type\s+(?<type>[\w\d]+)(?:,\s+default\s+(?<default>(?:"".*?"")|(?:[^\s,]+)))?(?:,\s+priority\s+(?<priority>[\d\.]+))?(?:,\s+tg\s+(?<tg>[\d\.]+))?\s+(?:flag\s+(?<flag>\w+),\s+)*(?:editType\s+(?<editType>[\w\d_]+),\s+)?(?:group\s+""(?<group>.*?)"",\s+)?(?:engineBindingName\s+""(?<engineBindingName>.*?)"",\s+)?constraintParam\s+""(?<constraintParam>.*?)""$");
@@ -158,7 +158,7 @@ public class ParamlistParser
         }
 
         string value = match.Groups["value"].Value;
-        switch (match.Groups["property"].Value)
+        switch (match.Groups["attribute"].Value)
         {
             case "uniqueid": lastClass.UniqueId = int.Parse(value); break;
             case "bindsTo": lastClass.BindsTo = value; break;
