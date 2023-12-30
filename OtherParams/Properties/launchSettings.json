@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "OtherParams": {
-      "commandName": "Project",
-      "commandLineArgs": "parse D:\\SteamLibrary\\steamapps\\common\\Otherland\\Atlas\\data\\otherlandgame\\content\\dbbba21e-2342-4357-a777-302ed11b978b\\paramlist.ini Param.db"
-    }
-  }
-}
