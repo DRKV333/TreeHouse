@@ -84,7 +84,7 @@ public class ParamlistParser
         await db.Tables.AddRangeAsync(tables.Values);
         await db.Classes.AddRangeAsync(classes.Values);
 
-        await db.SetGlobals(new Globals()
+        await db.SetGlobalsAsync(new Globals()
         {
             DataVer = dataVerValue,
             DefaultClanClass = classes[defaultClanClass!],

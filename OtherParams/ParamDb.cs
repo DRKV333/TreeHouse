@@ -17,7 +17,7 @@ public class ParamDb : DbContext
 
     public Task<Globals?> GetGlobalsAsync() => GlobalsSet.SingleOrDefaultAsync();
 
-    public async Task SetGlobals(Globals globals)
+    public async Task SetGlobalsAsync(Globals globals)
     {
         Globals? currentGlobals = await GetGlobalsAsync();
         if (currentGlobals != null)
