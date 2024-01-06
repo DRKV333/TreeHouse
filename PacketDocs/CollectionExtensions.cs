@@ -7,6 +7,7 @@ namespace PacketDocs;
 internal static class CollectionExtensions
 {
     public static bool TryAddOrGet<TKey, TValue>(this Dictionary<TKey, TValue> dict, TKey key, TValue value, [NotNullWhen(false)] out TValue? existing)
+        where TKey : notnull
     {
         if (dict.TryAdd(key, value))
         {
