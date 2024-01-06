@@ -9,6 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Text.Json;
 using YamlDotNet.Serialization;
+using WebMarkupMin.Core;
 
 IDeserializer yamlDeserializer = PacketFormatDocument.CreateDeserializer();
 IDeserializer yamlDeserializerForJson = new DeserializerBuilder().WithAttemptingUnquotedStringTypeDeserialization().Build();
@@ -19,7 +20,8 @@ new RootCommand()
     new Command("check").WithHandler(CheckHandler),
     new Command("build")
     {
-        new Option<FileInfo>(new[] { "--output", "-o" }).Required()
+        new Option<FileInfo>(new[] { "--output", "-o" }).Required(),
+        new Option<bool>("--skip-minify")
     }.WithHandler(BuildHandler)
 }
 .WithGlobalOption(new Option<DirectoryInfo>(new[] { "--definitions", "-d" }).Required().ExistingOnly())
@@ -75,7 +77,7 @@ void CheckHandler(DirectoryInfo defsDir)
     }
 }
 
-void BuildHandler(DirectoryInfo defsDir, FileInfo output)
+void BuildHandler(DirectoryInfo defsDir, FileInfo output, bool skipMinify)
 {
     PacketFormatDocument joinedDocument = new();
 
@@ -104,9 +106,22 @@ void BuildHandler(DirectoryInfo defsDir, FileInfo output)
         new StructuresPageTemplate(new HeadingItem("Structures", "Structures", "structures"), joinedDocument.Structures)
     };
 
-    IndexTemplate index = new(pages);
-    using TextWriter writer = output.CreateText();
-    index.Render(writer);
+    string indexContent = new IndexTemplate(pages).Render();
+
+    if (!skipMinify)
+    {
+        HtmlMinifier minifier = new();
+        MarkupMinificationResult result = minifier.Minify(indexContent);
+        
+        foreach (MinificationErrorInfo item in result.Errors.Concat(result.Warnings))
+        {
+            Console.WriteLine($"{item.LineNumber}:{item.ColumnNumber} {item.Category} {item.Message}");
+        }
+
+        indexContent = result.MinifiedContent;
+    }
+
+    File.WriteAllText(output.FullName, indexContent, Encoding.UTF8);
 }
 
 void PrintValidationError(EvaluationResults results, int indent = 1)
