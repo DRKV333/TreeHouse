@@ -1,6 +1,7 @@
 ﻿using Json.Schema;
 using PacketDocs;
 using PacketDocs.Yaml;
+using PacketDocs.Templates;
 using System;
 using System.CommandLine;
 using System.IO;
@@ -97,7 +98,13 @@ void BuildHandler(DirectoryInfo defsDir, FileInfo output)
         }
     }
 
-    IndexTemplate index = new(joinedDocument);
+    IHeadingProvider[] pages = new IHeadingProvider[]
+    {
+        new PacketsPageTemplate(new HeadingItem("Packets", "Packets", "packets"), joinedDocument.Packets),
+        new StructuresPageTemplate(new HeadingItem("Structures", "Structures", "structures"), joinedDocument.Structures)
+    };
+
+    IndexTemplate index = new(pages);
     using TextWriter writer = output.CreateText();
     index.Render(writer);
 }
