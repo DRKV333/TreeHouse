@@ -7,7 +7,7 @@
 
 @foreach (var item in Definitions)
 {
-    <div id="@item.heading.Id">
+    <div id="@PageHeading.Id-@item.heading.Id">
         <h1>@item.heading.Title</h1>
         @(new FieldsListTableTemplate(item.definition))
     </div>

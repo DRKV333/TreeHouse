@@ -2,6 +2,7 @@
 @using RazorBlade
 @using System
 @using System.Collections.Generic
+@using System.Linq
 
 @namespace PacketDocs.Templates
 
@@ -51,14 +52,47 @@
         <script>
 "use strict";
 document.addEventListener('DOMContentLoaded', e => {
-    const attrBsTheme = 'data-bs-theme';
     const isDark = window.matchMedia?.('(prefers-color-scheme: dark)').matches;
-    document.querySelectorAll(`[${attrBsTheme}="auto"]`).forEach(elem => elem.setAttribute(attrBsTheme, isDark ? 'dark' : 'light'));
+    document.querySelectorAll(`[data-bs-theme="auto"]`).forEach(elem => elem.setAttribute('data-bs-theme', isDark ? 'dark' : 'light'));
 
     const main = document.getElementById('main');
     document.querySelectorAll('#nav a[data-bs-toggle="pill"]').forEach(elem => {
-        elem.addEventListener('shown.bs.tab', show => bootstrap.ScrollSpy.getInstance(main).refresh());
+        elem.addEventListener('shown.bs.tab', show => {
+            bootstrap.ScrollSpy.getInstance(main).refresh();
+            window.location.hash = show.target.getAttribute('data-bs-target').substr('#page-'.length);
+        });
     });
+
+    document.getElementById('toc').addEventListener('click', click => {
+        if (click.target.tagName == 'A') {
+            const path = click.target.getAttribute('href').substr(1).split('-');
+            window.location.hash = `${path[0]}/${path.slice(1).join('-')}`;
+        }
+    });
+
+    const hash = window.location.hash;
+    const path = hash ? hash.substr(1).split('/') : [""];
+    
+    if (path.length >= 1) {
+        (
+            document.getElementById(`nav-${path[0]}`) ??
+            document.querySelector('#nav a:first-child')
+        ).classList.add('active');
+
+        (
+            document.getElementById(`page-${path[0]}`) ??
+            document.querySelector('#main .tab-pane:first-child')
+        ).classList.add('show', 'active');
+
+        (
+            document.getElementById(`toc-${path[0]}`) ??
+            document.querySelector('#toc .tab-pane:first-child')
+        ).classList.add('show', 'active');
+    }
+
+    if (path.length >= 2) {
+        document.getElementById(`${path[0]}-${path[1]}`)?.scrollIntoView();
+    }
 });
         </script>
     </head>
@@ -96,17 +130,9 @@ document.addEventListener('DOMContentLoaded', e => {
                 <div class="offcanvas-body">
                     <div class="nav nav-pills flex-column flex-nowrap">
                         @{
-                            bool first = true;
                             foreach (IHeadingProvider item in Model)
                             {
-                                string classes = "nav-link";
-                                if (first)
-                                {
-                                    classes += " active";
-                                    first = false;
-                                }
-                                
-                                <a class="@classes" data-bs-toggle="pill" data-bs-target="#page-@item.PageHeading.Id">@item.PageHeading.DisplayTitle</a>
+                                <a id="nav-@item.PageHeading.Id" class="nav-link" data-bs-toggle="pill" data-bs-target="#page-@item.PageHeading.Id">@item.PageHeading.DisplayTitle</a>
                             }
                         }
                         <hr class="d-lg-none" />
@@ -124,17 +150,9 @@ document.addEventListener('DOMContentLoaded', e => {
             <main id="main" class="gr-content p-3 overflow-y-auto" data-bs-spy="scroll" data-bs-target="#toc" data-bs-smooth-scroll="true" tabindex="0">
                 <div class="tab-content">
                     @{
-                        first = true;
                         foreach (IHeadingProvider item in Model)
                         {
-                            string classes = "tab-pane fade";
-                            if (first)
-                            {
-                                classes += " show active";
-                                first = false;
-                            }
-                            
-                            <div id="page-@item.PageHeading.Id" class="@classes" data-bs-target="#toc-@item.PageHeading.Id">
+                            <div id="page-@item.PageHeading.Id" class="tab-pane fade" data-bs-target="#toc-@item.PageHeading.Id">
                                 @(item)
                             </div>
                         }
@@ -144,25 +162,17 @@ document.addEventListener('DOMContentLoaded', e => {
             <nav id="toc" class="gr-toc p-3 overflow-y-auto overflow-x-hidden offcanvas-md offcanvas-bottom">
                 <div class="tab-content">
                     @{
-                        first = true;
                         foreach (IHeadingProvider item in Model)
                         {
                             IEnumerable<HeadingItem>? headings = item.Headings;
                             if (headings == null)
                                 throw new InvalidOperationException("Headings should be available after generating content.");
                             
-                            string classes = "tab-pane fade";
-                            if (first)
-                            {
-                                classes += " show active";
-                                first = false;
-                            }
-
-                            <div id="toc-@item.PageHeading.Id" class="@classes">
+                            <div id="toc-@item.PageHeading.Id" class="tab-pane fade">
                                 <div class="list-group">
                                     @foreach (HeadingItem heading in headings)
                                     {
-                                        <a class="list-group-item list-group-item-action" href="#@heading.Id">@heading.DisplayTitle</a>
+                                        <a class="list-group-item list-group-item-action" href="#@item.PageHeading.Id-@heading.Id">@heading.DisplayTitle</a>
                                     }
                                 </div>
                             </div>
