@@ -23,6 +23,7 @@ public class PacketFormatDocument
     public Dictionary<string, FieldsList> Structures { get; set; } = new();
 
     public static IDeserializer CreateDeserializer() => new DeserializerBuilder()
+        .IgnoreUnmatchedProperties()
         .WithNamingConvention(NullNamingConvention.Instance)
         .WithNodeDeserializer(ScalarWrapperTypeDiscriminatingNodeDeserializer<IFieldType, PrimitiveFieldType>.Instance)
         .WithTypeDiscriminatingNodeDeserializer(x =>
