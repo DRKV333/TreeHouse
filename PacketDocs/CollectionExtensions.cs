@@ -20,4 +20,20 @@ internal static class CollectionExtensions
     }
 
     public static IEnumerable<(T item, int index)> WithIndex<T>(this IEnumerable<T> col) => col.Select((x, i) => (x, i));
+
+    public static IEnumerable<T> EnumerateBackwards<T>(this IReadOnlyList<T> list)
+    {
+        for (int i = list.Count - 1; i >= 0; i--)
+        {
+            yield return list[i];
+        }
+    }
+
+    public static void AddRange<T>(this IList<T> list, IEnumerable<T> items)
+    {
+        foreach (T item in items)
+        {
+            list.Add(item);
+        }
+    }
 }

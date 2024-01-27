@@ -10,6 +10,9 @@ using System.Text;
 using System.Text.Json;
 using YamlDotNet.Serialization;
 using WebMarkupMin.Core;
+using PacketDocs.Markdown;
+using Markdig.Parsers;
+using Markdig;
 
 IDeserializer yamlDeserializer = PacketFormatDocument.CreateDeserializer();
 IDeserializer yamlDeserializerForJson = new DeserializerBuilder().WithAttemptingUnquotedStringTypeDeserialization().Build();
@@ -100,8 +103,15 @@ void BuildHandler(DirectoryInfo defsDir, FileInfo output, bool skipMinify)
         }
     }
 
+    MarkdownPipeline pipeline = MarkdownPage.CreatePipeline();
+
     IHeadingProvider[] pages = new IHeadingProvider[]
     {
+        new MarkdownPage(
+            pipeline,
+            new HeadingItem("Readme", "Readme", "readme"),
+            MarkdownParser.Parse(File.ReadAllText(Path.Join(defsDir.FullName, "README.MD")), pipeline)
+        ),
         new PacketsPageTemplate(new HeadingItem("Packets", "Packets", "packets"), joinedDocument.Packets),
         new StructuresPageTemplate(new HeadingItem("Structures", "Structures", "structures"), joinedDocument.Structures)
     };
