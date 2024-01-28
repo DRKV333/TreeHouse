@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 
-namespace PacketDocs.Yaml;
+namespace PacketFormat;
 
 public class PacketFormatDocument
 {

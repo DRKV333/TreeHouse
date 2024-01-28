@@ -1,10 +1,10 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
-namespace PacketDocs;
+namespace Common;
 
-internal static class CollectionExtensions
+public static class CollectionExtensions
 {
     public static bool TryAddOrGet<TKey, TValue>(this Dictionary<TKey, TValue> dict, TKey key, TValue value, [NotNullWhen(false)] out TValue? existing)
         where TKey : notnull

@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using YamlDotNet.Core;
 using YamlDotNet.Serialization.BufferedDeserialization.TypeDiscriminators;
 
-namespace PacketDocs.Yaml;
+namespace PacketFormat;
 
 internal class DefaultTypeDescriminator<TBase, TDefault> : ITypeDiscriminator where TDefault : TBase
 {

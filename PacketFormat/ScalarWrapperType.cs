@@ -1,16 +1,16 @@
-﻿using System;
+using System;
 using YamlDotNet.Core;
 using YamlDotNet.Core.Events;
 using YamlDotNet.Serialization;
 
-namespace PacketDocs.Yaml;
+namespace PacketFormat;
 
 public abstract class ScalarWrapperType
 {
     public string Value { get; set; } = "";
 }
 
-public class ScalarWrapperTypeDiscriminatingNodeDeserializer<TDiscminated, TWrapper> : INodeDeserializer where TWrapper : ScalarWrapperType, TDiscminated, new()
+internal class ScalarWrapperTypeDiscriminatingNodeDeserializer<TDiscminated, TWrapper> : INodeDeserializer where TWrapper : ScalarWrapperType, TDiscminated, new()
 {
     public static ScalarWrapperTypeDiscriminatingNodeDeserializer<TDiscminated, TWrapper> Instance { get; } = new();
 

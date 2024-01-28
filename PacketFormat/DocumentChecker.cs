@@ -1,11 +1,11 @@
-﻿using PacketDocs.Yaml;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using Common;
 
-namespace PacketDocs;
+namespace PacketFormat;
 
-internal enum CheckerErrorReason
+public enum CheckerErrorReason
 {
     DuplicatePacketName,
     DuplicateStructureName,
@@ -22,13 +22,13 @@ internal enum CheckerErrorReason
     EnumTypeBadType
 }
 
-internal record struct CheckerErrorSite(
+public record struct CheckerErrorSite(
     object DocumentId,
     string SiteObject,
     string SiteDetail
 );
 
-internal record class DocumentCheckerError(
+public record class DocumentCheckerError(
     CheckerErrorReason Reason,
     CheckerErrorSite Site,
     string? Related
@@ -42,7 +42,7 @@ internal record class DocumentCheckerError(
         };
 }
 
-internal class DocumentChecker
+public class DocumentChecker
 {
     private sealed class FieldDefinitionInfo
     {
