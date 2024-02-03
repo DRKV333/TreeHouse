@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PacketFormat", "PacketForma
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common", "Common\Common.csproj", "{B3A2F098-9F5B-4BA0-860A-623C9ECF79F7}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PacketFormat.Tests", "PacketFormat.Tests\PacketFormat.Tests.csproj", "{07EA4FC4-CDD3-44AA-A6AF-5867776073E9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{B3A2F098-9F5B-4BA0-860A-623C9ECF79F7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B3A2F098-9F5B-4BA0-860A-623C9ECF79F7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B3A2F098-9F5B-4BA0-860A-623C9ECF79F7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{07EA4FC4-CDD3-44AA-A6AF-5867776073E9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{07EA4FC4-CDD3-44AA-A6AF-5867776073E9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{07EA4FC4-CDD3-44AA-A6AF-5867776073E9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{07EA4FC4-CDD3-44AA-A6AF-5867776073E9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

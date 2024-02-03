@@ -176,7 +176,7 @@ public class LimitedStringFieldType : IFieldType
 public class ArrayFieldType : IFieldType
 {
     [YamlMember(Alias = "name")]
-    public string Name { get; set; } = "";
+    public string Name { get; set; } = "array";
 
     /// <summary>
     /// The number if fields in the sequence. May be specified as a constant or as the name of a
