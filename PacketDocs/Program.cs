@@ -1,13 +1,17 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.CommandLine;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
+using System.Threading.Tasks;
+using Common;
 using Json.Schema;
 using Markdig;
 using Markdig.Parsers;
 using PacketDocs;
+using PacketDocs.Lua;
 using PacketDocs.Markdown;
 using PacketDocs.Templates;
 using PacketFormat;
@@ -17,7 +21,7 @@ using YamlDotNet.Serialization;
 IDeserializer yamlDeserializer = PacketFormatDocument.CreateDeserializer();
 IDeserializer yamlDeserializerForJson = new DeserializerBuilder().WithAttemptingUnquotedStringTypeDeserialization().Build();
 
-new RootCommand()
+await new RootCommand()
 {
     new Command("validate").WithHandler(ValidateHandler),
     new Command("check").WithHandler(CheckHandler),
@@ -25,10 +29,14 @@ new RootCommand()
     {
         new Option<FileInfo>(new[] { "--output", "-o" }).Required(),
         new Option<bool>("--skip-minify")
-    }.WithHandler(BuildHandler)
+    }.WithHandler(BuildHandler),
+    new Command("lua")
+    {
+        new Option<FileInfo>(new[] { "--output", "-o" }).Required()
+    }.WithHandler(LuaHandler)
 }
 .WithGlobalOption(new Option<DirectoryInfo>(new[] { "--definitions", "-d" }).Required().ExistingOnly())
-.Invoke(args);
+.InvokeAsync(args);
 
 void ValidateHandler(DirectoryInfo defsDir)
 {
@@ -92,15 +100,8 @@ void BuildHandler(DirectoryInfo defsDir, FileInfo output, bool skipMinify)
         using TextReader reader = file.OpenText();
         PacketFormatDocument document = yamlDeserializer.Deserialize<PacketFormatDocument>(reader);
 
-        foreach (var (key, value) in document.Packets)
-        {
-            joinedDocument.Packets.Add(key, value);
-        }
-
-        foreach (var (key, value) in document.Structures)
-        {
-            joinedDocument.Structures.Add(key, value);
-        }
+        joinedDocument.Packets.AddRange(document.Packets);
+        joinedDocument.Structures.AddRange(document.Structures);
     }
 
     MarkdownPipeline pipeline = MarkdownPage.CreatePipeline();
@@ -132,6 +133,39 @@ void BuildHandler(DirectoryInfo defsDir, FileInfo output, bool skipMinify)
     }
 
     File.WriteAllText(output.FullName, indexContent, Encoding.UTF8);
+}
+
+async Task LuaHandler(DirectoryInfo defsDir, FileInfo output)
+{
+    LuaLiteralSerializer luaSerializer = new();
+    luaSerializer.AddWhitelistAssembly(typeof(PacketFormatDocument).Assembly);
+    luaSerializer.AddObjectTransformer<PrimitiveFieldType>(x => x.Value);
+
+    LuaPacketFormatDocument luaDocument = new();
+
+    foreach (FileInfo file in defsDir.EnumerateFiles("*.yaml", new EnumerationOptions() { RecurseSubdirectories = true }))
+    {
+        if (file.Name.EndsWith(".schema.yaml"))
+            continue;
+
+        using TextReader reader = file.OpenText();
+        PacketFormatDocument document = yamlDeserializer.Deserialize<PacketFormatDocument>(reader);
+
+        foreach (var definition in document.Packets)
+        {
+            if (definition.Value.Id == 0 && definition.Value.SubId == 0)
+                continue;
+
+            Dictionary<int, string> idDict = luaDocument.ById.TryGetOrAdd(definition.Value.Id, x => new Dictionary<int, string>());
+            idDict.Add(definition.Value.SubId, definition.Key);
+        }
+
+        luaDocument.Packets.AddRange(document.Packets);
+        luaDocument.Structures.AddRange(document.Structures);
+    }
+
+    using TextWriter writer = output.CreateText();
+    await luaSerializer.Serialize(luaDocument, writer);
 }
 
 void PrintValidationError(EvaluationResults results, int indent = 1)

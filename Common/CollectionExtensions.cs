@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -19,6 +20,18 @@ public static class CollectionExtensions
         return false;
     }
 
+    public static TValue TryGetOrAdd<TKey, TValue>(this Dictionary<TKey, TValue> dict, TKey key, Func<TKey, TValue> valueFactory)
+        where TKey : notnull
+    {
+        if (!dict.TryGetValue(key, out TValue? value))
+        {
+            value = valueFactory(key);
+            dict.Add(key, value);
+        }
+        
+        return value;
+    }
+
     public static IEnumerable<(T item, int index)> WithIndex<T>(this IEnumerable<T> col) => col.Select((x, i) => (x, i));
 
     public static IEnumerable<T> EnumerateBackwards<T>(this IReadOnlyList<T> list)
@@ -34,6 +47,15 @@ public static class CollectionExtensions
         foreach (T item in items)
         {
             list.Add(item);
+        }
+    }
+
+    public static void AddRange<TKey, TValue>(this Dictionary<TKey, TValue> dict, IEnumerable<KeyValuePair<TKey, TValue>> pairs)
+        where TKey : notnull
+    {
+        foreach (var item in pairs)
+        {
+            dict.Add(item.Key, item.Value);
         }
     }
 }
