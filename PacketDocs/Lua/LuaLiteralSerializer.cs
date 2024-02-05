@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
@@ -62,8 +63,8 @@ internal class LuaLiteralSerializer
     {
         if (obj is string s)
             return SerializeString(s, writer);
-        else if (IsInteger(obj) || obj is float or double)
-            return SerializeNumber(obj, writer);
+        else if (IsNumber(obj))
+            return SerializePrimitive(obj, writer);
         else if (obj is IDictionary dict)
             return SerializeDictionary(dict, writer);
         else if (obj is IEnumerable enumerable)
@@ -79,7 +80,13 @@ internal class LuaLiteralSerializer
         await writer.WriteAsync('"');
     }
 
-    private static Task SerializeNumber(object obj, TextWriter writer) => writer.WriteAsync(obj.ToString());
+    private static Task SerializePrimitive(object obj, TextWriter writer)
+    {
+        if (obj is IFormattable formattable)
+            return writer.WriteAsync(formattable.ToString(null, CultureInfo.InvariantCulture));
+        else
+            return writer.WriteAsync(obj.ToString());
+    }
 
     private async Task SerializeDictionary(IDictionary dict, TextWriter writer)
     {
@@ -88,12 +95,12 @@ internal class LuaLiteralSerializer
         {
             if (entry.Value != null)
             {
-                bool integerKey = IsInteger(entry.Key);
+                bool numberKey = IsNumber(entry.Key);
 
-                if (integerKey)
+                if (numberKey)
                     await writer.WriteAsync('[');
-                await writer.WriteAsync(entry.Key.ToString());
-                if (integerKey)
+                await SerializePrimitive(entry.Key, writer);
+                if (numberKey)
                     await writer.WriteAsync(']');
 
                 await writer.WriteAsync('=');
@@ -149,6 +156,6 @@ internal class LuaLiteralSerializer
         return t.GetProperties().Select(x => new LuaPropertyInfo(x)).ToList();
     });
 
-    private static bool IsInteger(object obj) =>
-        obj is byte or sbyte or short or ushort or int or uint or long or ulong;
+    private static bool IsNumber(object obj) =>
+        obj is byte or sbyte or short or ushort or int or uint or long or ulong or float or double;
 }
