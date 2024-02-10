@@ -84,7 +84,7 @@ void CheckHandler(DirectoryInfo defsDir)
 
     foreach (DocumentCheckerError error in checker.Errors)
     {
-        Console.WriteLine(error.ToErrorMessage());
+        Console.WriteLine(error);
     }
 }
 

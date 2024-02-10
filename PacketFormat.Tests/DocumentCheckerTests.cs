@@ -38,6 +38,7 @@ public class DocumentCheckerTests
 
         checker.CheckReferences();
         Assert.That(ErrorReasons(checker), Is.EquivalentTo(new[] { CheckerErrorReason.DuplicatePacketName }));
+        TestContext.WriteLine(checker.Errors.First());
     }
     
 
@@ -64,6 +65,7 @@ public class DocumentCheckerTests
 
         checker.CheckReferences();
         Assert.That(ErrorReasons(checker), Is.EquivalentTo(new[] { CheckerErrorReason.DuplicateStructureName }));
+        TestContext.WriteLine(checker.Errors.First());
     }
 
     [Test]
@@ -97,6 +99,7 @@ public class DocumentCheckerTests
 
         checker.CheckReferences();
         Assert.That(ErrorReasons(checker), Is.EquivalentTo(new[] { CheckerErrorReason.DuplicatePacketId }));
+        TestContext.WriteLine(checker.Errors.First());
     }
 
     [Test]
@@ -121,6 +124,7 @@ public class DocumentCheckerTests
 
         checker.CheckReferences();
         Assert.That(ErrorReasons(checker), Is.EquivalentTo(new[] { CheckerErrorReason.MultipleFieldDefinition }));
+        TestContext.WriteLine(checker.Errors.First());
     }
 
     [Test]
@@ -145,6 +149,7 @@ public class DocumentCheckerTests
 
         checker.CheckReferences();
         Assert.That(ErrorReasons(checker), Is.EquivalentTo(new[] { CheckerErrorReason.EmptyBranch }));
+        TestContext.WriteLine(checker.Errors.First());
     }
 
     [Test]
@@ -189,6 +194,7 @@ public class DocumentCheckerTests
 
         checker.CheckReferences();
         Assert.That(ErrorReasons(checker), Is.EquivalentTo(new[] { CheckerErrorReason.FieldTypeDifferentOnBranch }));
+        TestContext.WriteLine(checker.Errors.First());
     }
 
     [Test]
@@ -232,6 +238,7 @@ public class DocumentCheckerTests
 
         checker.CheckReferences();
         Assert.That(ErrorReasons(checker), Is.EquivalentTo(new[] { CheckerErrorReason.ReferencedFieldDoesNotExist }));
+        TestContext.WriteLine(checker.Errors.First());
     }
 
     [Test]
@@ -276,6 +283,7 @@ public class DocumentCheckerTests
 
         checker.CheckReferences();
         Assert.That(ErrorReasons(checker), Is.EquivalentTo(new[] { CheckerErrorReason.BranchIntegerNoCondition }));
+        TestContext.WriteLine(checker.Errors.First());
     }
 
     [Test]
@@ -320,6 +328,7 @@ public class DocumentCheckerTests
 
         checker.CheckReferences();
         Assert.That(ErrorReasons(checker), Is.EquivalentTo(new[] { CheckerErrorReason.BranchBadFieldType }));
+        TestContext.WriteLine(checker.Errors.First());
     }
 
     [Test]
@@ -344,6 +353,7 @@ public class DocumentCheckerTests
 
         checker.CheckReferences();
         Assert.That(ErrorReasons(checker), Is.EquivalentTo(new[] { CheckerErrorReason.LengthBadFieldType }));
+        TestContext.WriteLine(checker.Errors.First());
     }
 
     [Test]
@@ -367,6 +377,7 @@ public class DocumentCheckerTests
 
         checker.CheckReferences();
         Assert.That(ErrorReasons(checker), Is.EquivalentTo(new[] { CheckerErrorReason.ReferencedStructDoesNotExist }));
+        TestContext.WriteLine(checker.Errors.First());
     }
 
     [Test]
@@ -387,6 +398,7 @@ public class DocumentCheckerTests
 
         checker.CheckReferences();
         Assert.That(ErrorReasons(checker), Is.EquivalentTo(new[] { CheckerErrorReason.ReferencedPacketDoesNotExist }));
+        TestContext.WriteLine(checker.Errors.First());
     }
 
     [Test]
@@ -410,6 +422,7 @@ public class DocumentCheckerTests
 
         checker.CheckReferences();
         Assert.That(ErrorReasons(checker), Is.EquivalentTo(new[] { CheckerErrorReason.EnumTypeBadType }));
+        TestContext.WriteLine(checker.Errors.First());
     }
 
     private static IEnumerable<CheckerErrorReason> ErrorReasons(DocumentChecker checker) => checker.Errors.Select(x => x.Reason);

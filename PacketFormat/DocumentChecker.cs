@@ -26,7 +26,10 @@ public record struct CheckerErrorSite(
     object DocumentId,
     string SiteObject,
     string SiteDetail
-);
+)
+{
+    public override string ToString() => $"{DocumentId}#{SiteObject}#{SiteDetail}";
+}
 
 public record class DocumentCheckerError(
     CheckerErrorReason Reason,
@@ -34,10 +37,23 @@ public record class DocumentCheckerError(
     string? Related
 )
 {
-    public string ToErrorMessage() => // TODO
-        $"{Site.DocumentId}: " +
+    public override string ToString() =>
+        $"{Site} " +
         Reason switch
         {
+            CheckerErrorReason.DuplicatePacketName => $"A packet with this name was already defined in document {Related}.",
+            CheckerErrorReason.DuplicateStructureName => $"A structure with this name was already defined in document {Related}.",
+            CheckerErrorReason.DuplicatePacketId => $"The packet {Related} was defined with this same ID.",
+            CheckerErrorReason.MultipleFieldDefinition => $"A field with this name was already defined at this point, possibly with a different type.",
+            CheckerErrorReason.EmptyBranch => $"Branch should provide at least of isTrue or isFalse.",
+            CheckerErrorReason.FieldTypeDifferentOnBranch => $"The type of the field {Related} was different on the two sides of this branch.",
+            CheckerErrorReason.ReferencedFieldDoesNotExist => $"The referenced field {Related} might not be defined at this point.",
+            CheckerErrorReason.BranchIntegerNoCondition => $"Branch on integer type field {Related} should specify exactly one of test_equal or test_flag.",
+            CheckerErrorReason.BranchBadFieldType => $"The field {Related} can't be used in a branch, as it isn't an integer or boolean.",
+            CheckerErrorReason.LengthBadFieldType => $"The field {Related} can't be used as length, as it isn't an integer.",
+            CheckerErrorReason.ReferencedStructDoesNotExist => $"The referenced structure {Related} does not exist.",
+            CheckerErrorReason.ReferencedPacketDoesNotExist => $"The referenced packet {Related} does not exist.",
+            CheckerErrorReason.EnumTypeBadType => $"The type {Related} can't be used as the base type of an enum, as it is not an integer type.",
             _ => "Unknown error."
         };
 }
