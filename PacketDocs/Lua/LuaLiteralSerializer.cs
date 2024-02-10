@@ -153,7 +153,7 @@ internal class LuaLiteralSerializer
         if (!assemblyWhitelist.Contains(t.Assembly))
             throw new ArgumentException($"Type {t.AssemblyQualifiedName} is not from a whitelisted assembly.");
 
-        return t.GetProperties().Select(x => new LuaPropertyInfo(x)).ToList();
+        return t.GetProperties().Where(x => x.GetCustomAttribute<YamlIgnoreAttribute>() == null).Select(x => new LuaPropertyInfo(x)).ToList();
     });
 
     private static bool IsNumber(object obj) =>
