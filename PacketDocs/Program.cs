@@ -138,13 +138,7 @@ void BuildHandler(DirectoryInfo defsDir, FileInfo output, bool skipMinify)
 async Task LuaHandler(DirectoryInfo defsDir, FileInfo output)
 {
     LuaLiteralSerializer luaSerializer = LuaPacketFormatDocument.CreateSerializer();
-    LuaPacketFormatDocument luaDocument = new();
-
-    Dictionary<string, int> packetIndexes = new();
-    int nextPacketIndex = 1;
-    
-    Dictionary<string, int> structureIndexes = new();
-    int nextStructureIndex = 1;
+    LuaDocumentMapper mapper = new();
 
     List<StructureFieldType> structsToIndex = new();
 
@@ -156,134 +150,13 @@ async Task LuaHandler(DirectoryInfo defsDir, FileInfo output)
         using TextReader reader = file.OpenText();
         PacketFormatDocument document = yamlDeserializer.Deserialize<PacketFormatDocument>(reader);
 
-        foreach (var packet in document.Packets)
-        {
-            luaDocument.Packets.Add(new LuaPacketDefinition()
-            {
-                Original = packet.Value,
-                Name = packet.Key,
-                Fields = MapLuaFieldItems(packet.Value.Fields, structsToIndex)
-            });
-            packetIndexes.Add(packet.Key, nextPacketIndex++);
-        }
-
-        foreach (var structure in document.Structures)
-        {
-            luaDocument.Structures.Add(new NamedFieldsList()
-            {
-                Name = structure.Key,
-                Fields = MapLuaFieldItems(structure.Value.Fields, structsToIndex)
-            });
-            structureIndexes.Add(structure.Key, nextStructureIndex++);
-        }
+        mapper.AddDocument(document);
     }
 
-    foreach (var (packet, index) in luaDocument.Packets.WithIndex())
-    {
-        if (!(packet.Original.Id == 0 && packet.Original.SubId == 0))
-        {
-            Dictionary<int, int> idDict = luaDocument.ById.TryGetOrAdd(packet.Original.Id, x => new Dictionary<int, int>());
-            idDict.Add(packet.Original.SubId, index + 1);
-        }
-
-        if (packet.Original.Inherit != null)
-        {
-            packet.Inherit = packetIndexes[packet.Original.Inherit];
-        }
-    }
-
-    foreach (StructureFieldType type in structsToIndex)
-    {
-        type.Index = structureIndexes[type.Name];
-    }
+    mapper.SetIndexes();
 
     using TextWriter writer = output.CreateText();
-    await luaSerializer.Serialize(luaDocument, writer);
-}
-
-List<IFieldItem> MapLuaFieldItems(IEnumerable<IFieldItem> fields, IList<StructureFieldType> structsToIndex) =>
-    fields.Select(x => MapLuaFieldItem(x, structsToIndex)).ToList();
-
-IFieldItem MapLuaFieldItem(IFieldItem item, IList<StructureFieldType> structsToIndex)
-{
-    if (item is Field field)
-    {
-        return new Field()
-        {
-            Name = field.Name,
-            Type = MapLuaFieldType(field.Type, structsToIndex)
-        };
-    }
-    else if (item is Branch branch)
-    {
-        return new Branch()
-        {
-            Details = new BranchDetails()
-            {
-                Field = branch.Details.Field,
-                TestEqual = branch.Details.TestEqual,
-                TestFlag = branch.Details.TestFlag,
-                IsTrue = branch.Details.IsTrue == null ? null : new FieldsList { Fields = MapLuaFieldItems(branch.Details.IsTrue.Fields, structsToIndex) },
-                IsFalse = branch.Details.IsFalse == null ? null : new FieldsList { Fields = MapLuaFieldItems(branch.Details.IsFalse.Fields, structsToIndex) },
-            }
-        };
-    }
-    else
-    {
-        return item;
-    }
-}
-
-IFieldType MapLuaFieldType(IFieldType type, IList<StructureFieldType> structsToIndex)
-{
-    if (type is ArrayFieldType arrayType)
-    {
-        return new LuaArrayFieldType()
-        {
-            Len = ParseIntMaybe(arrayType.Len),
-            Type = MapPrimitiveStructureReference(new PrimitiveFieldType() { Value = arrayType.Type }, structsToIndex)
-        };
-    }
-    else if (type is LimitedStringFieldType limitedStringType)
-    {
-        return new LuaLimitedStringFieldType()
-        {
-            Name = limitedStringType.Name,
-            Maxlen = ParseIntMaybe(limitedStringType.Maxlen)
-        };
-    }
-    else if (type is PrimitiveFieldType primitive)
-    {
-        return MapPrimitiveStructureReference(primitive, structsToIndex);
-    }
-    else
-    {
-        return type;
-    }
-}
-
-object ParseIntMaybe(string str)
-{
-    if (int.TryParse(str, out int number))
-        return number;
-    return str;
-}
-
-IFieldType MapPrimitiveStructureReference(PrimitiveFieldType primitive, IList<StructureFieldType> structsToIndex)
-{
-    if (primitive.Value.StartsWith(':'))
-    {
-        StructureFieldType type = new()
-        {
-            Name = primitive.Value[1..]
-        };
-        structsToIndex.Add(type);
-        return type;
-    }
-    else
-    {
-        return primitive;
-    }
+    await luaSerializer.Serialize(mapper.LuaDocument, writer);
 }
 
 void PrintValidationError(EvaluationResults results, int indent = 1)
