@@ -38,10 +38,10 @@ internal class NamedFieldsList : FieldsList
 internal class LuaPacketDefinition : NamedFieldsList
 {
     [YamlMember(Alias = "inherit")]
-    public int? Inherit { get; set; }
+    public int? Inherit { get; set; } = null;
 
     [YamlIgnore]
-    public PacketDefinition Original { get; set; } = null!;
+    public string? InheritName { get; set; } = null;
 }
 
 internal class StructureFieldType : IFieldType

@@ -104,9 +104,9 @@ internal class LuaDocumentMapper
 
             LuaDocument.Packets.Add(new LuaPacketDefinition()
             {
-                Original = packet.Value,
+                InheritName = packet.Value.Inherit,
                 Name = packet.Key,
-                Inherit = packet.Value.Inherit == null ? null : -1, 
+                Inherit = packet.Value.Inherit == null ? null : -1,
                 Fields = fieldsMapper.MapFieldItems(packet.Value.Fields).ToList()
             });
 
@@ -142,8 +142,8 @@ internal class LuaDocumentMapper
     {
         foreach (LuaPacketDefinition packet in LuaDocument.Packets)
         {
-            if (packet.Inherit == -1 && packet.Original.Inherit != null)
-                packet.Inherit = packetIndexes[packet.Original.Inherit];
+            if (packet.Inherit == -1 && packet.InheritName != null)
+                packet.Inherit = packetIndexes[packet.InheritName];
         }
 
         foreach (StructureFieldType type in structsToIndex)
