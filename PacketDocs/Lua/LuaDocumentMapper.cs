@@ -48,11 +48,11 @@ internal class LuaDocumentMapper
                 }
                 else if (item is Branch branch)
                 {
-                    yield return new Branch()
+                    yield return new LuaBranch()
                     {
-                        Details = new BranchDetails()
+                        Details = new LuaBranchDetails()
                         {
-                            Field = MapStash(branch.Details.Field).ToString(), // TODO: Make this int. 
+                            FieldIndex = MapStash(branch.Details.Field),
                             TestEqual = branch.Details.TestEqual,
                             TestFlag = branch.Details.TestFlag,
                             IsTrue = branch.Details.IsTrue == null ? null : new FieldsList { Fields = MapFieldItems(branch.Details.IsTrue.Fields).ToList() },

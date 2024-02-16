@@ -55,9 +55,13 @@ internal class LuaLiteralSerializer
 
     private readonly Dictionary<Type, List<LuaPropertyInfo>> objectProps = new();
 
+    private readonly Dictionary<Type, List<string>> ignoredProps = new();
+
     public void AddWhitelistAssembly(Assembly assembly) => assemblyWhitelist.Add(assembly);
 
     public void AddObjectTransformer<T>(Func<T, object> func) => transformers.Add(typeof(T), x => func((T)x));
+
+    public void IgnoreProperty<T>(string prop) => ignoredProps.TryGetOrAdd(typeof(T), x => new List<string>()).Add(prop);
 
     public Task Serialize(object obj, TextWriter writer)
     {
@@ -153,7 +157,12 @@ internal class LuaLiteralSerializer
         if (!assemblyWhitelist.Contains(t.Assembly))
             throw new ArgumentException($"Type {t.AssemblyQualifiedName} is not from a whitelisted assembly.");
 
-        return t.GetProperties().Where(x => x.GetCustomAttribute<YamlIgnoreAttribute>() == null).Select(x => new LuaPropertyInfo(x)).ToList();
+        List<string>? ignored = ignoredProps.GetValueOrDefault(t);
+
+        return t.GetProperties().Where(x => 
+            x.GetCustomAttribute<YamlIgnoreAttribute>() == null &&
+            !(ignored != null && ignored.Contains(x.Name))
+        ).Select(x => new LuaPropertyInfo(x)).ToList();
     });
 
     private static bool IsNumber(object obj) =>

@@ -25,6 +25,7 @@ internal class LuaPacketFormatDocument
         serializer.AddObjectTransformer<PrimitiveFieldType>(x => x.Value);
         serializer.AddObjectTransformer<StructureFieldType>(x => x.Index);
         serializer.AddObjectTransformer<LuaFieldIndex>(x => x.Index);
+        serializer.IgnoreProperty<LuaBranchDetails>(nameof(LuaBranchDetails.Field));
         return serializer;
     }
 }
@@ -81,4 +82,16 @@ public class LuaArrayFieldType : IFieldType
 
     [YamlMember(Alias = "type")]
     public IFieldType Type { get; set; } = null!;
+}
+
+public class LuaBranch : IFieldItem
+{
+    [YamlMember(Alias = "branch")]
+    public LuaBranchDetails Details { get; set; } = null!;
+}
+
+public class LuaBranchDetails : BranchDetails
+{
+    [YamlMember(Alias = "field")]
+    public int FieldIndex { get; set; }
 }
