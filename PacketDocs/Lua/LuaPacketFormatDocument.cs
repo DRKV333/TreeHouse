@@ -6,6 +6,9 @@ namespace PacketDocs.Lua;
 
 internal class LuaPacketFormatDocument
 {
+    [YamlMember(Alias = "fieldDefinitions")]
+    public List<LuaField> FieldDefinitions { get; set; } = new();
+
     [YamlMember(Alias = "byId")]
     public Dictionary<int, Dictionary<int, int>> ById { get; set; } = new();
 
@@ -21,6 +24,7 @@ internal class LuaPacketFormatDocument
         serializer.AddWhitelistAssembly(typeof(PacketFormatDocument).Assembly);
         serializer.AddObjectTransformer<PrimitiveFieldType>(x => x.Value);
         serializer.AddObjectTransformer<StructureFieldType>(x => x.Index);
+        serializer.AddObjectTransformer<LuaFieldIndex>(x => x.Index);
         return serializer;
     }
 }
@@ -47,22 +51,33 @@ internal class StructureFieldType : IFieldType
     public int Index { get; set; }
 }
 
-public class LuaLimitedStringFieldType : IFieldType
+public class LuaField : Field
 {
-    [YamlMember(Alias = "name")]
-    public string Name { get; set; } = "";
+    [YamlMember(Alias = "abbrev")]
+    public string Abbrev { get; set; }
 
-    [YamlMember(Alias = "maxlen")]
-    public object Maxlen { get; set; } = 0;
+    [YamlMember(Alias = "stash")]
+    public int? Stash { get; set; } = null;
+}
+
+public class LuaFieldIndex : IFieldItem
+{
+    public int Index { get; set; }
+}
+
+public class LuaFieldWithLengthOverride : IFieldItem
+{
+    [YamlMember(Alias = "index")]
+    public int Index { get; set; } = 0;
+
+    [YamlMember(Alias = "len")]
+    public int Len { get; set; } = 0;
 }
 
 public class LuaArrayFieldType : IFieldType
 {
     [YamlMember(Alias = "name")]
     public string Name { get; set; } = "array";
-
-    [YamlMember(Alias = "len")]
-    public object Len { get; set; } = 0;
 
     [YamlMember(Alias = "type")]
     public IFieldType Type { get; set; } = null!;

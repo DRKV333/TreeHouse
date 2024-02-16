@@ -7,6 +7,83 @@ namespace PacketDocs.Lua;
 
 internal class LuaDocumentMapper
 {
+    private sealed class LuaFieldsListMapper
+    {
+        public required LuaDocumentMapper Mapper { get; init; }
+
+        public required string ListName { get; init; }
+        
+        private readonly Dictionary<string, (LuaField def, int index)> fieldDefs = new();
+
+        private int nextStash = 1;
+
+        public IEnumerable<IFieldItem> MapFieldItems(IEnumerable<IFieldItem> fields)
+        {
+            int unnamedCounter = 1;
+
+            foreach (IFieldItem item in fields)
+            {
+                if (item is Field field)
+                {
+                    (LuaField _, int index) = fieldDefs.TryGetOrAdd(field.Name ?? $"unnamed{unnamedCounter++}", name => {
+                        LuaField def = new()
+                        {
+                            Name = field.Name,
+                            Abbrev = $"ol.{ListName}.{name}",
+                            Type = Mapper.MapFieldType(field.Type)
+                        };
+
+                        Mapper.LuaDocument.FieldDefinitions.Add(def);
+                        int index = Mapper.LuaDocument.FieldDefinitions.Count;
+
+                        return (def, index);
+                    });
+
+                    if (field.Type is ArrayFieldType array)
+                        yield return new LuaFieldWithLengthOverride() { Index = index, Len = MapLen(array.Len) };
+                    else if (field.Type is LimitedStringFieldType limited)
+                        yield return new LuaFieldWithLengthOverride() { Index = index, Len = MapLen(limited.Maxlen) };
+                    else
+                        yield return new LuaFieldIndex() { Index = index };
+                }
+                else if (item is Branch branch)
+                {
+                    yield return new Branch()
+                    {
+                        Details = new BranchDetails()
+                        {
+                            Field = MapStash(branch.Details.Field).ToString(), // TODO: Make this int. 
+                            TestEqual = branch.Details.TestEqual,
+                            TestFlag = branch.Details.TestFlag,
+                            IsTrue = branch.Details.IsTrue == null ? null : new FieldsList { Fields = MapFieldItems(branch.Details.IsTrue.Fields).ToList() },
+                            IsFalse = branch.Details.IsFalse == null ? null : new FieldsList { Fields = MapFieldItems(branch.Details.IsFalse.Fields).ToList() },
+                        }
+                    };
+                }
+                else
+                {
+                    yield return item;
+                }
+            }
+        }
+
+        private int MapLen(string len)
+        {
+            if (int.TryParse(len, out int lenNum))
+                return lenNum;
+            else
+                return MapStash(len) * -1;
+        }
+
+        private int MapStash(string field)
+        {
+            (LuaField def, int _) = fieldDefs[field];
+            if (def.Stash == null)
+                def.Stash = nextStash++;
+            return def.Stash.Value;
+        }
+    }
+
     private readonly List<StructureFieldType> structsToIndex = new();
 
     private readonly Dictionary<string, int> packetIndexes = new();
@@ -19,12 +96,18 @@ internal class LuaDocumentMapper
     {
         foreach (var packet in document.Packets)
         {
+            LuaFieldsListMapper fieldsMapper = new()
+            {
+                Mapper = this,
+                ListName = packet.Key
+            };
+
             LuaDocument.Packets.Add(new LuaPacketDefinition()
             {
                 Original = packet.Value,
                 Name = packet.Key,
                 Inherit = packet.Value.Inherit == null ? null : -1, 
-                Fields = MapFieldItems(packet.Value.Fields)
+                Fields = fieldsMapper.MapFieldItems(packet.Value.Fields).ToList()
             });
 
             int index = LuaDocument.Packets.Count;
@@ -40,10 +123,16 @@ internal class LuaDocumentMapper
 
         foreach (var structure in document.Structures)
         {
+            LuaFieldsListMapper fieldsMapper = new()
+            {
+                Mapper = this,
+                ListName = structure.Key
+            };
+
             LuaDocument.Structures.Add(new NamedFieldsList()
             {
                 Name = structure.Key,
-                Fields = MapFieldItems(structure.Value.Fields)
+                Fields = fieldsMapper.MapFieldItems(structure.Value.Fields).ToList()
             });
             structureIndexes.Add(structure.Key, LuaDocument.Structures.Count);
         }
@@ -64,54 +153,20 @@ internal class LuaDocumentMapper
         structsToIndex.Clear();
     }
 
-    private List<IFieldItem> MapFieldItems(IEnumerable<IFieldItem> fields) => fields.Select(MapLuaFieldItem).ToList();
-
-    private IFieldItem MapLuaFieldItem(IFieldItem item)
-    {
-        if (item is Field field)
-        {
-            return new Field()
-            {
-                Name = field.Name,
-                Type = MapFieldType(field.Type)
-            };
-        }
-        else if (item is Branch branch)
-        {
-            return new Branch()
-            {
-                Details = new BranchDetails()
-                {
-                    Field = branch.Details.Field,
-                    TestEqual = branch.Details.TestEqual,
-                    TestFlag = branch.Details.TestFlag,
-                    IsTrue = branch.Details.IsTrue == null ? null : new FieldsList { Fields = MapFieldItems(branch.Details.IsTrue.Fields) },
-                    IsFalse = branch.Details.IsFalse == null ? null : new FieldsList { Fields = MapFieldItems(branch.Details.IsFalse.Fields) },
-                }
-            };
-        }
-        else
-        {
-            return item;
-        }
-    }
-
     private IFieldType MapFieldType(IFieldType type)
     {
         if (type is ArrayFieldType arrayType)
         {
             return new LuaArrayFieldType()
             {
-                Len = ParseIntMaybe(arrayType.Len),
                 Type = MapPrimitiveStructureReference(new PrimitiveFieldType() { Value = arrayType.Type })
             };
         }
         else if (type is LimitedStringFieldType limitedStringType)
         {
-            return new LuaLimitedStringFieldType()
+            return new PrimitiveFieldType()
             {
-                Name = limitedStringType.Name,
-                Maxlen = ParseIntMaybe(limitedStringType.Maxlen)
+                Value = limitedStringType.Name
             };
         }
         else if (type is PrimitiveFieldType primitive)
@@ -139,12 +194,5 @@ internal class LuaDocumentMapper
         {
             return primitive;
         }
-    }
-
-    private static object ParseIntMaybe(string str)
-    {
-        if (int.TryParse(str, out int number))
-            return number;
-        return str;
     }
 }
