@@ -156,6 +156,7 @@ async Task LuaHandler(DirectoryInfo defsDir, FileInfo output)
     mapper.SetIndexes();
 
     using TextWriter writer = output.CreateText();
+    await writer.WriteAsync("return ");
     await luaSerializer.Serialize(mapper.LuaDocument, writer);
 }
 
