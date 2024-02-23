@@ -28,7 +28,7 @@ internal class LuaDocumentMapper
                     (LuaField _, int index) = fieldDefs.TryGetOrAdd(field.Name ?? $"unnamed{unnamedCounter++}", name => {
                         LuaField def = new()
                         {
-                            Name = field.Name,
+                            Name = field.Name ?? TypeToDisplayName(field.Type),
                             Abbrev = $"ol.{ListName}.{name}",
                             Type = Mapper.MapFieldType(field.Type)
                         };
@@ -65,6 +65,18 @@ internal class LuaDocumentMapper
                     yield return item;
                 }
             }
+        }
+
+        private static string TypeToDisplayName(IFieldType type)
+        {
+            if (type is PrimitiveFieldType primitive)
+                return primitive.Value;
+            else if (type is ArrayFieldType array)
+                return $"{array.Type}[{array.Len}]";
+            else if (type is LimitedStringFieldType limited)
+                return $"{limited.Name}[{limited.Maxlen}]";
+            else
+                return "???";
         }
 
         private int MapLen(string len)
