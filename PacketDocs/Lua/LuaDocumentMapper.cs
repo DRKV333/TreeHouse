@@ -29,7 +29,7 @@ internal class LuaDocumentMapper
                         LuaField def = new()
                         {
                             Name = field.Name ?? TypeToDisplayName(field.Type),
-                            Abbrev = $"ol.{ListName}.{name}",
+                            Abbrev = $"{ListName}.{name}",
                             Type = Mapper.MapFieldType(field.Type)
                         };
 
