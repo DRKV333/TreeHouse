@@ -80,8 +80,8 @@ public class LuaArrayFieldType : IFieldType
     [YamlMember(Alias = "name")]
     public string Name { get; set; } = "array";
 
-    [YamlMember(Alias = "type")]
-    public IFieldType Type { get; set; } = null!;
+    [YamlMember(Alias = "items")]
+    public int Items { get; set; }
 }
 
 public class LuaBranch : IFieldItem

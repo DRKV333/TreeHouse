@@ -26,12 +26,13 @@ internal class LuaDocumentMapper
                 if (item is Field field)
                 {
                     (LuaField _, int index) = fieldDefs.TryGetOrAdd(field.Name ?? $"unnamed{unnamedCounter++}", name => {
+                        string abbrev = $"{ListName}.{name}";
                         LuaField def = new()
                         {
                             Name = field.Name ?? TypeToDisplayName(field.Type),
-                            Abbrev = $"{ListName}.{name}",
-                            Type = Mapper.MapFieldType(field.Type)
+                            Abbrev = abbrev
                         };
+                        Mapper.MapFieldType(def, field.Type);
 
                         Mapper.LuaDocument.FieldDefinitions.Add(def);
                         int index = Mapper.LuaDocument.FieldDefinitions.Count;
@@ -165,29 +166,35 @@ internal class LuaDocumentMapper
         structsToIndex.Clear();
     }
 
-    private IFieldType MapFieldType(IFieldType type)
+    private void MapFieldType(LuaField field, IFieldType type)
     {
         if (type is ArrayFieldType arrayType)
         {
-            return new LuaArrayFieldType()
-            {
+            LuaDocument.FieldDefinitions.Add(new LuaField() {
+                Name = field.Name + " Item",
+                Abbrev = field.Abbrev + ".item",
                 Type = MapPrimitiveStructureReference(new PrimitiveFieldType() { Value = arrayType.Type })
+            });
+
+            field.Type = new LuaArrayFieldType()
+            {
+                Items = LuaDocument.FieldDefinitions.Count
             };
         }
         else if (type is LimitedStringFieldType limitedStringType)
         {
-            return new PrimitiveFieldType()
+            field.Type = new PrimitiveFieldType()
             {
                 Value = limitedStringType.Name
             };
         }
         else if (type is PrimitiveFieldType primitive)
         {
-            return MapPrimitiveStructureReference(primitive);
+            field.Type = MapPrimitiveStructureReference(primitive);
         }
         else
         {
-            return type;
+            field.Type = type;
         }
     }
 
