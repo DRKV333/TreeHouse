@@ -170,16 +170,26 @@ internal class LuaDocumentMapper
     {
         if (type is ArrayFieldType arrayType)
         {
-            LuaDocument.FieldDefinitions.Add(new LuaField() {
-                Name = field.Name + " Item",
-                Abbrev = field.Abbrev + ".item",
-                Type = MapPrimitiveStructureReference(new PrimitiveFieldType() { Value = arrayType.Type })
-            });
-
-            field.Type = new LuaArrayFieldType()
+            if (arrayType.Type is "u8" or "i8")
             {
-                Items = LuaDocument.FieldDefinitions.Count
-            };
+                field.Type = new LuaArrayFieldType()
+                {
+                    Items = -1
+                };
+            }
+            else
+            {
+                LuaDocument.FieldDefinitions.Add(new LuaField() {
+                    Name = field.Name + " Item",
+                    Abbrev = field.Abbrev + ".item",
+                    Type = MapPrimitiveStructureReference(new PrimitiveFieldType() { Value = arrayType.Type })
+                });
+
+                field.Type = new LuaArrayFieldType()
+                {
+                    Items = LuaDocument.FieldDefinitions.Count
+                };
+            }
         }
         else if (type is LimitedStringFieldType limitedStringType)
         {
