@@ -55,7 +55,7 @@ internal class StructureFieldType : IFieldType
 public class LuaField : Field
 {
     [YamlMember(Alias = "abbrev")]
-    public string Abbrev { get; set; }
+    public string Abbrev { get; set; } = "";
 
     [YamlMember(Alias = "stash")]
     public int? Stash { get; set; } = null;
