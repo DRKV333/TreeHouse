@@ -9,8 +9,11 @@ internal class LuaPacketFormatDocument
     [YamlMember(Alias = "fieldDefinitions")]
     public List<LuaField> FieldDefinitions { get; set; } = new();
 
+    [YamlMember(Alias = "idLength")]
+    public int IdLength { get; set; }
+
     [YamlMember(Alias = "byId")]
-    public Dictionary<int, Dictionary<int, int>> ById { get; set; } = new();
+    public Dictionary<int, object> ById { get; set; } = new();
 
     [YamlMember(Alias = "packets")]
     public List<LuaPacketDefinition> Packets { get; set; } = new();

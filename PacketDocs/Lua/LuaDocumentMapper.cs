@@ -97,6 +97,8 @@ internal class LuaDocumentMapper
         }
     }
 
+    private readonly bool singleByteIds;
+
     private readonly List<StructureFieldType> structsToIndex = new();
 
     private readonly Dictionary<string, int> packetIndexes = new();
@@ -104,6 +106,12 @@ internal class LuaDocumentMapper
     private readonly Dictionary<string, int> structureIndexes = new();
 
     public LuaPacketFormatDocument LuaDocument { get; } = new();
+
+    public LuaDocumentMapper(bool singleByteIds = false)
+    {
+        this.singleByteIds = singleByteIds;
+        LuaDocument.IdLength = singleByteIds ? 1 : 2;
+    }
 
     public void AddDocument(PacketFormatDocument document)
     {
@@ -129,8 +137,15 @@ internal class LuaDocumentMapper
 
             if (!(packet.Value.Id == 0 && packet.Value.SubId == 0))
             {
-                Dictionary<int, int> idDict = LuaDocument.ById.TryGetOrAdd(packet.Value.Id, x => new Dictionary<int, int>());
-                idDict.Add(packet.Value.SubId, index);
+                if (singleByteIds)
+                {
+                    LuaDocument.ById.Add(packet.Value.Id, index);
+                }
+                else
+                {
+                    Dictionary<int, int> idDict = (Dictionary<int, int>)LuaDocument.ById.TryGetOrAdd(packet.Value.Id, x => new Dictionary<int, int>());
+                    idDict.Add(packet.Value.SubId, index);
+                }
             }
         }
 

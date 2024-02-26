@@ -156,7 +156,7 @@ async Task LuaHandler(DirectoryInfo defsDir, FileInfo output)
 
     mapper.SetIndexes();
 
-    LuaDocumentMapper nativeparamMapper = new();
+    LuaDocumentMapper nativeparamMapper = new(singleByteIds: true);
     using TextReader nativeparamReader = new StreamReader(
         Assembly.GetExecutingAssembly().GetManifestResourceStream("nativeparam.yaml")!,
         leaveOpen: false
