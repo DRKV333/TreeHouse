@@ -52,7 +52,7 @@ internal class StructureFieldType : IFieldType
     public int Index { get; set; }
 }
 
-public class LuaField : Field
+internal class LuaField : Field
 {
     [YamlMember(Alias = "abbrev")]
     public string Abbrev { get; set; } = "";
@@ -61,12 +61,12 @@ public class LuaField : Field
     public int? Stash { get; set; } = null;
 }
 
-public class LuaFieldIndex : IFieldItem
+internal class LuaFieldIndex : IFieldItem
 {
     public int Index { get; set; }
 }
 
-public class LuaFieldWithLengthOverride : IFieldItem
+internal class LuaFieldWithLengthOverride : IFieldItem
 {
     [YamlMember(Alias = "index")]
     public int Index { get; set; } = 0;
@@ -75,7 +75,7 @@ public class LuaFieldWithLengthOverride : IFieldItem
     public int Len { get; set; } = 0;
 }
 
-public class LuaArrayFieldType : IFieldType
+internal class LuaArrayFieldType : IFieldType
 {
     [YamlMember(Alias = "name")]
     public string Name { get; set; } = "array";
@@ -84,13 +84,13 @@ public class LuaArrayFieldType : IFieldType
     public int Items { get; set; }
 }
 
-public class LuaBranch : IFieldItem
+internal class LuaBranch : IFieldItem
 {
     [YamlMember(Alias = "branch")]
     public LuaBranchDetails Details { get; set; } = null!;
 }
 
-public class LuaBranchDetails : BranchDetails
+internal class LuaBranchDetails : BranchDetails
 {
     [YamlMember(Alias = "field")]
     public int FieldIndex { get; set; }
