@@ -17,4 +17,8 @@
   <ItemGroup>
     <ProjectReference Include="..\PacketFormat\PacketFormat.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Lua\nativeparam.yaml" LogicalName="nativeparam.yaml" />
+  </ItemGroup>
 </Project>

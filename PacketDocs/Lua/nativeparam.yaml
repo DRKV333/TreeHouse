@@ -1,0 +1,119 @@
+$schema: "https://github.com/plehmkuhl/otherland-packet-formats/otherland.packet.schema.yaml"
+
+packets:
+  uint8:
+    id: 1
+    subId: 0
+    fields:
+      - type: u8
+
+  float32:
+    id: 2
+    subId: 0
+    fields:
+      - type: f32
+
+  float64:
+    id: 3
+    subId: 0
+    fields:
+      - type: f64
+
+  int32:
+    id: 4
+    subId: 0
+    fields:
+      - type: i32
+
+  cstring:
+    id: 5
+    subId: 0
+    fields:
+      - type: cstring
+
+  struct:
+    id: 6
+    subId: 0
+    fields:
+      - name: count
+        type: u8
+      - type: { name: array, len: count, type: nativeparam }
+
+  uuid:
+    id: 7
+    subId: 0
+    fields:
+      - type: uuid
+
+  avatarid:
+    id: 8
+    subId: 0
+    fields:
+      - type: u64
+
+  vector3:
+    id: 9
+    subId: 0
+    fields:
+      - name: x
+        type: f32
+      - name: y
+        type: f32
+      - name: z
+        type: f32
+
+  bool:
+    id: 10
+    subId: 0
+    fields:
+      - type: u8
+
+  json:
+    id: 11
+    subId: 0
+    fields:
+      - type: cstring
+
+  int32array:
+    id: 12
+    subId: 0
+    fields:
+      - name: count
+        type: u32
+      - type: { name: array, len: count, type: u32 }
+
+  int64:
+    id: 13
+    subId: 0
+    fields:
+      - type: i64
+
+  buffer:
+    id: 14
+    subId: 0
+    fields:
+      - name: length
+        type: u32
+      - type: { name: array, len: length, type: u8 }
+
+  uint32:
+    id: 15
+    subId: 0
+    fields:
+      - type: u32
+
+  uuidarray:
+    id: 16
+    subId: 0
+    fields:
+      - name: count
+        type: u32
+      - type: { name: array, len: count, type: uuid }
+
+  cstringarray:
+    id: 17
+    subId: 0
+    fields:
+      - name: count
+        type: u32
+      - type: { name: array, len: count, type: cstring }

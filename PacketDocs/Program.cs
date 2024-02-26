@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.CommandLine;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -155,9 +156,24 @@ async Task LuaHandler(DirectoryInfo defsDir, FileInfo output)
 
     mapper.SetIndexes();
 
+    LuaDocumentMapper nativeparamMapper = new();
+    using TextReader nativeparamReader = new StreamReader(
+        Assembly.GetExecutingAssembly().GetManifestResourceStream("nativeparam.yaml")!,
+        leaveOpen: false
+    );
+    nativeparamMapper.AddDocument(yamlDeserializer.Deserialize<PacketFormatDocument>(nativeparamReader));
+    nativeparamMapper.SetIndexes();
+
     using TextWriter writer = output.CreateText();
     await writer.WriteAsync("return ");
-    await luaSerializer.Serialize(mapper.LuaDocument, writer);
+    await luaSerializer.Serialize(
+        new PacketFormats()
+        {
+            Main = mapper.LuaDocument,
+            Nativeparam = nativeparamMapper.LuaDocument
+        },
+        writer
+    );
 }
 
 void PrintValidationError(EvaluationResults results, int indent = 1)
