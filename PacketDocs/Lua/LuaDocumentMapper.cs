@@ -17,6 +17,8 @@ internal class LuaDocumentMapper
 
         private int nextStash = 1;
 
+        private int nextBranch = 1;
+
         public IEnumerable<IFieldItem> MapFieldItems(IEnumerable<IFieldItem> fields)
         {
             int unnamedCounter = 1;
@@ -49,13 +51,20 @@ internal class LuaDocumentMapper
                 }
                 else if (item is Branch branch)
                 {
+                    Mapper.LuaDocument.Branches.Add(new LuaBranchDescription()
+                    {
+                        Abbrev = $"{ListName}.branch{nextBranch++}",
+                        Name = BranchToDisplay(branch.Details),
+                        FieldIndex = MapStash(branch.Details.Field),
+                        TestEqual = branch.Details.TestEqual,
+                        TestFlag = branch.Details.TestFlag,
+                    });
+
                     yield return new LuaBranch()
                     {
                         Details = new LuaBranchDetails()
                         {
-                            FieldIndex = MapStash(branch.Details.Field),
-                            TestEqual = branch.Details.TestEqual,
-                            TestFlag = branch.Details.TestFlag,
+                            Index = Mapper.LuaDocument.Branches.Count,
                             IsTrue = branch.Details.IsTrue == null ? null : new FieldsList { Fields = MapFieldItems(branch.Details.IsTrue.Fields).ToList() },
                             IsFalse = branch.Details.IsFalse == null ? null : new FieldsList { Fields = MapFieldItems(branch.Details.IsFalse.Fields).ToList() },
                         }
@@ -78,6 +87,16 @@ internal class LuaDocumentMapper
                 return $"{limited.Name}[{limited.Maxlen}]";
             else
                 return "???";
+        }
+
+        private static string BranchToDisplay(BranchDetails details)
+        {
+            if (details.TestEqual != null)
+                return $"{details.Field} == {details.TestEqual}";
+            else if (details.TestFlag != null)
+                return $"{details.Field} & {details.TestFlag:X}";
+            else
+                return details.Field;
         }
 
         private int MapLen(string len)

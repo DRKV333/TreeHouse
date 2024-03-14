@@ -21,6 +21,9 @@ internal class LuaPacketFormatDocument
     [YamlMember(Alias = "structures")]
     public List<NamedFieldsList> Structures { get; set; } = new();
 
+    [YamlMember(Alias = "branches")]
+    public List<LuaBranchDescription> Branches { get; set; } = new();
+
     public static LuaLiteralSerializer CreateSerializer()
     {
         LuaLiteralSerializer serializer = new();
@@ -28,7 +31,6 @@ internal class LuaPacketFormatDocument
         serializer.AddObjectTransformer<PrimitiveFieldType>(x => x.Value);
         serializer.AddObjectTransformer<StructureFieldType>(x => x.Index);
         serializer.AddObjectTransformer<LuaFieldIndex>(x => x.Index);
-        serializer.IgnoreProperty<LuaBranchDetails>(nameof(LuaBranchDetails.Field));
         return serializer;
     }
 }
@@ -93,8 +95,32 @@ internal class LuaBranch : IFieldItem
     public LuaBranchDetails Details { get; set; } = null!;
 }
 
-internal class LuaBranchDetails : BranchDetails
+internal class LuaBranchDetails
 {
+    [YamlMember(Alias = "index")]
+    public int Index { get; set; }
+
+    [YamlMember(Alias = "isFalse")]
+    public FieldsList? IsFalse { get; set; }
+
+    [YamlMember(Alias = "isTrue")]
+    public FieldsList? IsTrue { get; set; }
+}
+
+internal class LuaBranchDescription
+{
+    [YamlMember(Alias = "abbrev")]
+    public string Abbrev { get; set; } = "";
+
+    [YamlMember(Alias = "name")]
+    public string Name { get; set; } = "";
+
     [YamlMember(Alias = "field")]
     public int FieldIndex { get; set; }
+
+    [YamlMember(Alias = "test_equal")]
+    public int? TestEqual { get; set; }
+
+    [YamlMember(Alias = "test_flag")]
+    public int? TestFlag { get; set; }
 }
