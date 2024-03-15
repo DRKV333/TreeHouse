@@ -1,0 +1,91 @@
+<Project DefaultTargets="Build">
+    <ItemGroup>
+        <ProjectFiles Include="*/*.csproj" />
+    </ItemGroup>
+    <PropertyGroup>
+        <LaunchOutput>./.vscode/launch.json</LaunchOutput>
+        <TasksOutput>./.vscode/tasks.json</TasksOutput>
+        <LaunchTemlate>
+        {
+            "name": "Launch PROJECT_NAME",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "Build PROJECT_NAME",
+            "program": "OUTPUT_DLL",
+            "args": [],
+            "cwd": "OUTPUT_FOLDER",
+            "console": "internalConsole",
+            "stopAtEntry": false
+        },
+        </LaunchTemlate>
+        <TaskTemplate>
+        {
+            "label": "Build PROJECT_NAME",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "build",
+                "PROJECT_FILE",
+                "/property:GenerateFullPaths=true",
+                "/consoleloggerparameters:NoSummary;ForceNoAlign"
+            ],
+            "problemMatcher": "$msCompile"
+        },
+        </TaskTemplate>
+    </PropertyGroup>
+    <Target Name="SetItemsMetadata" Inputs="@(ProjectFiles)" Outputs="%(Identity).DoesNotExist">
+        <MSBuild Projects="%(ProjectFiles.Identity)" Targets="GetTargetPath">
+            <Output TaskParameter="TargetOutputs" PropertyName="ProjectOutputPath" />
+        </MSBuild>
+        <PropertyGroup>
+            <ProjectOutputFolder>$([System.IO.Path]::GetDirectoryName($(ProjectOutputPath)))</ProjectOutputFolder>
+            <ProjectOutputPath>$(ProjectOutputPath.Replace('\', '\\'))</ProjectOutputPath>
+            <ProjectOutputFolder>$(ProjectOutputFolder.Replace('\', '\\'))</ProjectOutputFolder>
+        </PropertyGroup>
+        <ItemGroup>
+            <ProjectFiles Condition="'%(Identity)' == '%(ProjectFiles.Identity)'">
+                <LaunchItem>$(
+                    LaunchTemlate
+                        .Replace("PROJECT_NAME", %(Filename))
+                        .Replace("OUTPUT_DLL", $(ProjectOutputPath))
+                        .Replace("OUTPUT_FOLDER", $(ProjectOutputFolder))
+                    )
+                </LaunchItem>
+                <TaskItem>$(
+                    TaskTemplate
+                        .Replace("PROJECT_NAME", %(Filename))
+                        .Replace("PROJECT_FILE", $([System.String]::Copy('%(FullPath)').Replace('\', '\\')))
+                    )
+                </TaskItem>
+            </ProjectFiles>
+        </ItemGroup>
+    </Target>
+    <Target Name="Build" DependsOnTargets="SetItemsMetadata" Inputs="@(ProjectFiles)" Outputs="$(LaunchOutput);$(TasksOutput)">
+        <PropertyGroup>
+            <LaunchContent>
+{
+    "version": "0.2.0",
+    "configurations": [
+        @(ProjectFiles->'%(LaunchItem)', '')
+        {
+            "name": "Attach",
+            "type": "coreclr",
+            "request": "attach"
+        }
+    ]
+}
+            </LaunchContent>
+            <TasksContent>
+{
+    "version": "2.0.0",
+    "tasks": [
+        @(ProjectFiles->'%(TaskItem)', '')
+    ]
+}
+            </TasksContent>
+        </PropertyGroup>
+
+        <WriteLinesToFile File="$(LaunchOutput)" Lines="$(LaunchContent)" Overwrite="true" />
+        <WriteLinesToFile File="$(TasksOutput)" Lines="$(TasksContent)" Overwrite="true" />
+    </Target>
+</Project>

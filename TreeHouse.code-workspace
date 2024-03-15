@@ -1,0 +1,22 @@
+{
+    "folders": [
+        {
+            "path": ".",
+        }
+    ],
+    "tasks": {
+        "version": "2.0.0",
+        "tasks": [
+            {
+                "label": "Generate Launch Configuration",
+                "command": "dotnet",
+                "type": "process",
+                "args": [
+                    "build",
+                    "LaunchSettingsGen.targets",
+                ],
+                "problemMatcher": "$msCompile"
+            }
+        ]
+    }
+}
