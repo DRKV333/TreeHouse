@@ -31,7 +31,7 @@ internal class LuaDocumentMapper
                         string abbrev = $"{ListName}.{name}";
                         LuaField def = new()
                         {
-                            Name = field.Name ?? TypeToDisplayName(field.Type),
+                            Name = FieldToDisplayName(field),
                             Abbrev = abbrev
                         };
                         Mapper.MapFieldType(def, field.Type);
@@ -75,6 +75,16 @@ internal class LuaDocumentMapper
                     yield return item;
                 }
             }
+        }
+
+        private static string FieldToDisplayName(Field field)
+        {
+            if (field.Name == null)
+                return TypeToDisplayName(field.Type);
+            else if (field.Type is ArrayFieldType or LimitedStringFieldType)
+                return $"{field.Name} {TypeToDisplayName(field.Type)}";
+            else
+                return field.Name;
         }
 
         private static string TypeToDisplayName(IFieldType type)
