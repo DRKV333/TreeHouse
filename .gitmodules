@@ -1,9 +1,9 @@
 [submodule "minhook"]
-	path = Othertransport/minhook
+	path = TreeHouse.Othertransport/minhook
 	url = https://github.com/TsudaKageyu/minhook.git
 [submodule "asio"]
-	path = Othertransport/asio
+	path = TreeHouse.Othertransport/asio
 	url = https://github.com/chriskohlhoff/asio.git
 [submodule "readerwriterqueue/readerwriterqueue"]
-	path = Othertransport/readerwriterqueue/readerwriterqueue
+	path = TreeHouse.Othertransport/readerwriterqueue/readerwriterqueue
 	url = https://github.com/cameron314/readerwriterqueue.git

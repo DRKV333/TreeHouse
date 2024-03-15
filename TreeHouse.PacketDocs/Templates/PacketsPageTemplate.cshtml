@@ -1,0 +1,22 @@
+@using RazorBlade
+@using TreeHouse.PacketFormat
+
+@namespace TreeHouse.PacketDocs.Templates
+
+@inherits FieldsListPageTemplateBase<PacketDefinition>
+
+@foreach (var item in Definitions)
+{
+    <div id="@PageHeading.Id-@item.heading.Id">
+        <h1>@item.heading.Title</h1>
+        <ul class="list-inline">
+            <li class="list-inline-item"><strong>ID: </strong><span class="font-monospace">0x@(item.definition.Id.ToString("X2"))</span></li>
+            <li class="list-inline-item"><strong>SubID: </strong><span class="font-monospace">0x@(item.definition.SubId.ToString("X2"))</span></li>
+            @if (item.definition.Inherit != null)
+            {
+                <li class="list-inline-item"><strong>Inherits: </strong>@item.definition.Inherit</li> 
+            }
+        </ul>
+        @(new FieldsListTableTemplate(item.definition))
+    </div>
+}

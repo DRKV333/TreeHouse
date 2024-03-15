@@ -1,0 +1,14 @@
+@using RazorBlade
+@using TreeHouse.PacketFormat
+
+@namespace TreeHouse.PacketDocs.Templates
+
+@inherits FieldsListPageTemplateBase<FieldsList>
+
+@foreach (var item in Definitions)
+{
+    <div id="@PageHeading.Id-@item.heading.Id">
+        <h1>@item.heading.Title</h1>
+        @(new FieldsListTableTemplate(item.definition))
+    </div>
+}

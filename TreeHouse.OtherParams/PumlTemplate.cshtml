@@ -1,0 +1,28 @@
+@using Microsoft.EntityFrameworkCore;
+@using RazorBlade;
+@using TreeHouse.OtherParams.Model
+
+@inherits PlainTextTemplate<ParamDb>
+
+@@startuml
+
+left to right direction
+hide empty members
+
+@foreach (Class c in Model.Classes.Include(x => x.Extends).Include(x => x.DefinedParams))
+{
+    @:class @c.Name
+    @:{
+        @foreach (Param p in c.DefinedParams)
+        {
+            @:+ @p.Name: @p.Type
+        }
+    @:}
+
+    if (c.Extends != null)
+    {
+        @:@c.Extends.Name <|-- @c.Name
+    }
+}
+
+@@enduml

@@ -1,0 +1,49 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.6.33829.357
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TreeHouse.OtherParams", "TreeHouse.OtherParams\TreeHouse.OtherParams.csproj", "{63CB6E1E-01D1-4B21-B8D9-347853B5154F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TreeHouse.PacketDocs", "TreeHouse.PacketDocs\TreeHouse.PacketDocs.csproj", "{00ED0211-1493-4751-A929-3C5A4798676F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TreeHouse.PacketFormat", "TreeHouse.PacketFormat\TreeHouse.PacketFormat.csproj", "{5F61EFFA-EA63-45BE-B496-0D63F0D83F65}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TreeHouse.Common", "TreeHouse.Common\TreeHouse.Common.csproj", "{B3A2F098-9F5B-4BA0-860A-623C9ECF79F7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TreeHouse.PacketFormat.Tests", "TreeHouse.PacketFormat.Tests\TreeHouse.PacketFormat.Tests.csproj", "{07EA4FC4-CDD3-44AA-A6AF-5867776073E9}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{63CB6E1E-01D1-4B21-B8D9-347853B5154F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{63CB6E1E-01D1-4B21-B8D9-347853B5154F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{63CB6E1E-01D1-4B21-B8D9-347853B5154F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{63CB6E1E-01D1-4B21-B8D9-347853B5154F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{00ED0211-1493-4751-A929-3C5A4798676F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{00ED0211-1493-4751-A929-3C5A4798676F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{00ED0211-1493-4751-A929-3C5A4798676F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{00ED0211-1493-4751-A929-3C5A4798676F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5F61EFFA-EA63-45BE-B496-0D63F0D83F65}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5F61EFFA-EA63-45BE-B496-0D63F0D83F65}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5F61EFFA-EA63-45BE-B496-0D63F0D83F65}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5F61EFFA-EA63-45BE-B496-0D63F0D83F65}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B3A2F098-9F5B-4BA0-860A-623C9ECF79F7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B3A2F098-9F5B-4BA0-860A-623C9ECF79F7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B3A2F098-9F5B-4BA0-860A-623C9ECF79F7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B3A2F098-9F5B-4BA0-860A-623C9ECF79F7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{07EA4FC4-CDD3-44AA-A6AF-5867776073E9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{07EA4FC4-CDD3-44AA-A6AF-5867776073E9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{07EA4FC4-CDD3-44AA-A6AF-5867776073E9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{07EA4FC4-CDD3-44AA-A6AF-5867776073E9}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {1FEEC95D-3122-45AF-A442-89834A871904}
+	EndGlobalSection
+EndGlobal
