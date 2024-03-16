@@ -1,1 +1,0 @@
-This is a very early attempt at talking to the Otherland client, by patching around RakNet.

@@ -10,7 +10,7 @@
 #define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
 #include <Windows.h>                    // Windows Header Files
 
-#include "minhook/include/MinHook.h"
+#include "MinHook.h"
 
 #define ASIO_NO_DEPRECATED
 #include <asio.hpp>

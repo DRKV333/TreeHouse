@@ -1,5 +1,3 @@
-#include "pch.h"
-
 #include "TCPSocket.h"
 
 #include "OLRakNetTypes.h"

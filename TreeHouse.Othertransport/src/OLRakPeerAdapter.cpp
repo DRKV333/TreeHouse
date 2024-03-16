@@ -1,5 +1,3 @@
-#include "pch.h"
-
 #include "OLRakPeerAdapter.h"
 
 #include "Log.h"

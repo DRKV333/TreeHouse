@@ -1,5 +1,3 @@
-#include "pch.h"
-
 #include "Addrs.h"
 #include "RakPeerFactoryRedirect.h"
 #include "LoggingRedirect.h"

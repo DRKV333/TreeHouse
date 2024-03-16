@@ -1,5 +1,3 @@
-#include "pch.h"
-
 #include "Log.h"
 
 #include <wchar.h>
