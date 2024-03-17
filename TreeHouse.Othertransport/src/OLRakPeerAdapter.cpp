@@ -11,20 +11,27 @@ uint16_t OLRakPeerAdapter::numberOfConnections()
 
 bool OLRakPeerAdapter::connect(char* host, uint16_t remotePort, char* passwordData, uint32_t passworkDataLenght, uint32_t connectionSocketIndex)
 {
-	LOG_DEBUG(L"[%X] %S:%u", this, host, remotePort);
+	LOG_THIS_DEBUG(L"%S:%u", host, remotePort);
 
 	if (connected)
 	{
-		LOG_DEBUG(L"[%X] Already connected to %X:%u", this, thePacket.systemAddress.ip, thePacket.systemAddress.port);
+		LOG_THIS_DEBUG(L"Already connected to %X:%u", thePacket.systemAddress.ip, thePacket.systemAddress.port);
 		return false;
 	}
 	
 	uint32_t ip[2];
 	reinterpret_cast<void(__cdecl*)(uint32_t*, char*)>(Addrs::getptr(Addrs::parseIpV4))(ip, host);
+	
+	OLSystemAddress systemAddress{ .ip = ip[0], .port = remotePort };
+
+	if (thePacket.systemAddress == systemAddress)
+	{
+		LOG_THIS_DEBUG(L"Already asked socket to connect, don't try again");
+		return true;
+	}
 
 	thePacket.systemIndex = connectedSystemIndex;
-	thePacket.systemAddress.ip = ip[0];
-	thePacket.systemAddress.port = remotePort;
+	thePacket.systemAddress = systemAddress;
 	thePacket.systemGUID = connectedGUID;
 
 	socket->connect(ip[0], remotePort);
@@ -36,13 +43,13 @@ bool OLRakPeerAdapter::send2(OLBitStream* stream, uint32_t arg2, uint32_t arg3, 
 {
 	if (!connected)
 	{
-		LOG_DEBUG(L"Not connected");
+		LOG_THIS_DEBUG(L"Not connected");
 		return false;
 	}
 
 	if (address != thePacket.systemAddress)
 	{
-		LOG_DEBUG(L"Message sent to wrong address: %X:%u", address.ip, address.port);
+		LOG_THIS_DEBUG(L"Message sent to wrong address: %X:%u", address.ip, address.port);
 		return false;
 	}
 
@@ -54,7 +61,7 @@ OLPacket* OLRakPeerAdapter::receive(void* arg)
 {
 	if (thePacketWasReceived)
 	{
-		LOG_DEBUG(L"Receive was called before deallocate.");
+		LOG_THIS_DEBUG(L"Receive was called before deallocate.");
 		return nullptr;
 	}
 
@@ -65,7 +72,10 @@ OLPacket* OLRakPeerAdapter::receive(void* arg)
 		return nullptr;
 
 	if (length == 1 && data[0] == OLDefaultMessageIDTypes::OL_ID_CONNECTION_REQUEST_ACCEPTED)
+	{
 		connected = true;
+		LOG_THIS_DEBUG(L"Socket signals successful connection.");
+	}
 
 	thePacket.data = data;
 	thePacket.length = length;
@@ -79,13 +89,13 @@ void OLRakPeerAdapter::deallocatePacket(OLPacket* packet)
 {
 	if (packet != &thePacket)
 	{
-		LOG_DEBUG(L"[%X] Tried to deallocate invalid packet: %X", this, packet);
+		LOG_THIS_DEBUG(L"Tried to deallocate invalid packet: %X", packet);
 		return;
 	}
 
 	if (!thePacketWasReceived)
 	{
-		LOG_DEBUG(L"[%X] Packet was not sent before deallocate.");
+		LOG_THIS_DEBUG(L"Packet was not sent before deallocate.");
 		return;
 	}
 
@@ -95,7 +105,7 @@ void OLRakPeerAdapter::deallocatePacket(OLPacket* packet)
 
 bool OLRakPeerAdapter::isConnected(OLSystemAddress address, bool flag1, bool flag2)
 {
-	LOG_DEBUG(L"[%X] %X:%u", this, address.ip, address.port);	
+	LOG_THIS_DEBUG(L"asked: %X:%u, actual: %X:%u", address.ip, address.port, thePacket.systemAddress.ip, thePacket.systemAddress.port);
 	return connected && address == thePacket.systemAddress;
 }
 
