@@ -31,7 +31,7 @@ private:
 	Buffer pendingRead;
 	Buffer pendingWrite;
 
-	bool writing;
+	bool writing = false;
 
 	void doRead();
 
