@@ -6,6 +6,7 @@
 
 uint16_t OLRakPeerAdapter::numberOfConnections()
 {
+	LOG_THIS_DEBUG("connected: %d", connected);
 	return connected ? 1 : 0;
 }
 
@@ -35,6 +36,24 @@ bool OLRakPeerAdapter::connect(char* host, uint16_t remotePort, char* passwordDa
 	thePacket.systemGUID = connectedGUID;
 
 	socket->connect(ip[0], remotePort);
+
+	return true;
+}
+
+bool OLRakPeerAdapter::getConnectionList(OLSystemAddress* remoteSystems, uint16_t* numberOfSystems)
+{
+	LOG_THIS_DEBUG("connected: %d", connected);
+
+	if (connected)
+	{
+		if (remoteSystems != nullptr)
+			*remoteSystems = thePacket.systemAddress;
+		*numberOfSystems = 1;
+	}
+	else
+	{
+		*numberOfSystems = 0;
+	}
 
 	return true;
 }
@@ -101,6 +120,16 @@ void OLRakPeerAdapter::deallocatePacket(OLPacket* packet)
 
 	socket->receiveAck();
 	thePacketWasReceived = false;
+}
+
+void OLRakPeerAdapter::closeConnection(OLSystemAddress target, bool sendDisconnectNotification, uint8_t orderingChannel)
+{
+	socket->disconnect();
+	thePacket.systemIndex = OLPacket::unassignedSystemIndex;
+	thePacket.systemAddress = OLSystemAddress::unassigned;
+	thePacket.systemGUID = OLRakNetGUID::unassigned;
+	connected = false;
+	LOG_THIS_DEBUG("Disconnected");
 }
 
 bool OLRakPeerAdapter::isConnected(OLSystemAddress address, bool flag1, bool flag2)

@@ -27,6 +27,11 @@ void TCPSocket::connect(uint32_t ip, uint16_t port)
 	}));
 }
 
+void TCPSocket::disconnect()
+{
+	socket.close(); // TODO: This forcefully disconnects the server, figure out how to do this nicely.
+}
+
 void TCPSocket::doRead()
 {
 	asio::async_read(socket, asio::mutable_buffer(&pendingRead.length, sizeof(pendingRead.length)),

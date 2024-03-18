@@ -3,6 +3,6 @@
 
 void OLRakPeerInterface::unimplementedPurecall(const char* name)
 {
-	LOG_THIS_DEBUG(L"Called into unimplemented RakPeerInterface function: %S Client will probably crash now...", name);
+	LOG_DEBUG(L"Called into unimplemented RakPeerInterface function: %S Client will probably crash now...", name);
 	DebugBreak();
 }

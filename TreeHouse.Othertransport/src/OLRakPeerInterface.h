@@ -39,7 +39,8 @@ public:
 
 	UNIMPLEMENTED(shutdown)
 	UNIMPLEMENTED(isActive)
-	UNIMPLEMENTED(getConnectionList)
+
+	virtual bool getConnectionList(OLSystemAddress* remoteSystems, uint16_t* numberOfSystems) = 0;
 
 	UNIMPLEMENTED(send1)
 
@@ -56,7 +57,8 @@ public:
 	virtual void deallocatePacket(OLPacket* packet) = 0;
 
 	UNIMPLEMENTED(getMaximumNumberOfPeers)
-	UNIMPLEMENTED(FUN_0174d630)
+
+	virtual void closeConnection(OLSystemAddress target, bool sendDisconnectNotification, uint8_t orderingChannel) = 0;
 	
 	virtual bool isConnected(OLSystemAddress address, bool flag1, bool flag2) = 0;
 

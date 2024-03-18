@@ -7,6 +7,11 @@ void DummySocket::connect(uint32_t ip, uint16_t port)
     pendingConnectMessage = true;
 }
 
+void DummySocket::disconnect()
+{
+    LOG_DEBUG(L"Disconnected");
+}
+
 void DummySocket::send(const char* data, uint32_t length)
 {
     LOG_DEBUG(L"dataPtr: %p, length: %u", data, length);

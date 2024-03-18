@@ -12,6 +12,8 @@ private:
 public:
 	virtual void connect(uint32_t ip, uint16_t port) override;
 
+	virtual void disconnect() override;
+
 	virtual void send(const char* data, uint32_t length) override;
 
 	virtual char* receive(uint32_t* length) override;
