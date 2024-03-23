@@ -10,7 +10,7 @@ uint16_t OLRakPeerAdapter::numberOfConnections()
 	return connected ? 1 : 0;
 }
 
-bool OLRakPeerAdapter::connect(char* host, uint16_t remotePort, char* passwordData, uint32_t passworkDataLenght, uint32_t connectionSocketIndex)
+bool OLRakPeerAdapter::connect(char* host, uint16_t remotePort, char* passwordData, uint32_t passwordDataLenght, uint32_t connectionSocketIndex)
 {
 	LOG_THIS_DEBUG(L"%S:%u", host, remotePort);
 
@@ -58,7 +58,7 @@ bool OLRakPeerAdapter::getConnectionList(OLSystemAddress* remoteSystems, uint16_
 	return true;
 }
 
-bool OLRakPeerAdapter::send2(OLBitStream* stream, uint32_t arg2, uint32_t arg3, char arg4, OLSystemAddress address, char arg7)
+bool OLRakPeerAdapter::send2(OLBitStream* stream, uint32_t priority, uint32_t reliability, uint8_t orderingChannel, OLSystemAddress address, bool broadcast)
 {
 	if (!connected)
 	{

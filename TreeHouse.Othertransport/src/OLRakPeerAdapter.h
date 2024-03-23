@@ -4,6 +4,10 @@
 
 #include <memory>
 
+// Implements OLRakPeerInterface and relays commands to an AsyncSocket instance.
+// The implementation makes some assumptions about the way the game uses the interface:
+// - Only one peer is connected at a time. When the game wants to talk to a new peer, the current one is disconnected first.
+// - The game always calls deallocatePacket on a received packet, before calling receive again. Only one packet is processed at a time.
 class OLRakPeerAdapter : public OLRakPeerInterface
 {
 private:
@@ -27,11 +31,11 @@ public:
 
 	virtual uint16_t numberOfConnections() override;
 
-	virtual bool connect(char* host, uint16_t remotePort, char* passwordData, uint32_t passworkDataLenght, uint32_t connectionSocketIndex) override;
+	virtual bool connect(char* host, uint16_t remotePort, char* passwordData, uint32_t passwordDataLenght, uint32_t connectionSocketIndex) override;
 
 	virtual bool getConnectionList(OLSystemAddress* remoteSystems, uint16_t* numberOfSystems) override;
 
-	virtual bool send2(OLBitStream* stream, uint32_t arg2, uint32_t arg3, char arg4, OLSystemAddress address, char arg7) override;
+	virtual bool send2(OLBitStream* stream, uint32_t priority, uint32_t reliability, uint8_t orderingChannel, OLSystemAddress address, bool broadcast) override;
 
 	virtual OLPacket* receive(void* arg) override;
 

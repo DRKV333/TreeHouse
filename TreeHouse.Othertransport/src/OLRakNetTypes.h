@@ -60,8 +60,17 @@ static_assert(offsetof(OLPacket, deleteData)    == 40);
 
 enum OLDefaultMessageIDTypes : char
 {
+	// In a client/server environment, our connection request to the server has been accepted.
 	OL_ID_CONNECTION_REQUEST_ACCEPTED = 0x0B,
-	OL_ID_CONNECTION_ATTEMPT_FAILED = 0x0C
+
+	// Sent to the player when a connection request cannot be completed due to inability to connect.
+	OL_ID_CONNECTION_ATTEMPT_FAILED = 0x0C,
+
+	// This signals a successful client initiated disconnection.
+	OL_ID_DISCONNECTION_NOTIFICATION = 0x10,
+
+	// This signals an unexpected disconnection.
+	OL_ID_CONNECTION_LOST = 0x11
 };
 
 struct OLBitStream
