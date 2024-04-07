@@ -9,6 +9,6 @@
 {
     <div id="@PageHeading.Id-@item.heading.Id">
         <h1>@item.heading.Title</h1>
-        @(new FieldsListTableTemplate(item.definition))
+        @(new FieldsListTableTemplate((item.definition, DescriptionPipeline)))
     </div>
 }

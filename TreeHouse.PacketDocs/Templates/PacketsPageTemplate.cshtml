@@ -17,6 +17,6 @@
                 <li class="list-inline-item"><strong>Inherits: </strong>@item.definition.Inherit</li> 
             }
         </ul>
-        @(new FieldsListTableTemplate(item.definition))
+        @(new FieldsListTableTemplate((item.definition, DescriptionPipeline)))
     </div>
 }

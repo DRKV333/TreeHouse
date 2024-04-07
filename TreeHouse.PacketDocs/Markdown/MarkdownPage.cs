@@ -6,30 +6,25 @@ using TreeHouse.PacketDocs.Templates;
 
 namespace TreeHouse.PacketDocs.Markdown;
 
-internal class MarkdownPage : IHeadingProvider
+internal class MarkdownPage : MarkdownContent, IHeadingProvider
 {
     public HeadingItem PageHeading { get; }
 
     public IEnumerable<HeadingItem>? Headings => document.GetHeadingList();
 
-    private readonly MarkdownPipeline pipeline;
-
-    private readonly MarkdownDocument document;
-
     public MarkdownPage(MarkdownPipeline pipeline, HeadingItem pageHeading, MarkdownDocument document)
+        : base(pipeline, document)
     {
-        this.pipeline = pipeline;
         PageHeading = pageHeading;
-        this.document = document;
     }
 
-    public void WriteTo(TextWriter textWriter)
+    public override void WriteTo(TextWriter textWriter)
     {
         document.SetPageHeadingId(PageHeading.Id);
-        Markdig.Markdown.ToHtml(document, textWriter, pipeline);
+        base.WriteTo(textWriter);
     }
 
-    public static MarkdownPipeline CreatePipeline()
+    public static new MarkdownPipeline CreatePipeline()
     {
         MarkdownPipeline plainTextPipeline = new MarkdownPipelineBuilder().Build();
         return new MarkdownPipelineBuilder()

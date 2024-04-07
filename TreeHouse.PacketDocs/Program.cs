@@ -105,17 +105,18 @@ void BuildHandler(DirectoryInfo defsDir, FileInfo output, bool skipMinify)
         joinedDocument.Structures.AddRange(document.Structures);
     }
 
-    MarkdownPipeline pipeline = MarkdownPage.CreatePipeline();
+    MarkdownPipeline pagePipeline = MarkdownPage.CreatePipeline();
+    MarkdownPipeline descriptionPipeline = MarkdownContent.CreatePipeline();
 
     IHeadingProvider[] pages = new IHeadingProvider[]
     {
         new MarkdownPage(
-            pipeline,
+            pagePipeline,
             new HeadingItem("Readme", "Readme", "readme"),
-            MarkdownParser.Parse(File.ReadAllText(Path.Join(defsDir.FullName, "README.MD")), pipeline)
+            MarkdownParser.Parse(File.ReadAllText(Path.Join(defsDir.FullName, "README.MD")), pagePipeline)
         ),
-        new PacketsPageTemplate(new HeadingItem("Packets", "Packets", "packets"), joinedDocument.Packets),
-        new StructuresPageTemplate(new HeadingItem("Structures", "Structures", "structures"), joinedDocument.Structures)
+        new PacketsPageTemplate(new HeadingItem("Packets", "Packets", "packets"), joinedDocument.Packets, descriptionPipeline),
+        new StructuresPageTemplate(new HeadingItem("Structures", "Structures", "structures"), joinedDocument.Structures, descriptionPipeline)
     };
 
     string indexContent = new IndexTemplate(pages).Render();

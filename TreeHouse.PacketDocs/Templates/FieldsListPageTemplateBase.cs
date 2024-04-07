@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Markdig;
 using RazorBlade;
 using RazorBlade.Support;
 using TreeHouse.PacketFormat;
@@ -14,12 +15,16 @@ internal abstract class FieldsListPageTemplateBase<T> : HtmlTemplate, IHeadingPr
 
     protected readonly List<(HeadingItem heading, T definition)> Definitions;
 
+    protected readonly MarkdownPipeline DescriptionPipeline;
+
     public IEnumerable<HeadingItem>? Headings => Definitions.Select(x => x.heading);
     
     [TemplateConstructor]
-    protected FieldsListPageTemplateBase(HeadingItem pageHeading, IDictionary<string, T> definitions)
+    protected FieldsListPageTemplateBase(HeadingItem pageHeading, IDictionary<string, T> definitions, MarkdownPipeline descriptionPipeline)
     {
         PageHeading = pageHeading;
+        DescriptionPipeline = descriptionPipeline;
+
         Definitions = definitions
             .OrderBy(x => x.Key)
             .Select(x => (new HeadingItem(x.Key, BreakCamelCase(x.Key), x.Key.ToLower()), x.Value))

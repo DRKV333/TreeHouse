@@ -1,12 +1,15 @@
 @using System
 @using System.Linq
 @using System.Text
+@using Markdig
+@using Markdig.Parsers
 @using TreeHouse.PacketFormat
+@using TreeHouse.PacketDocs.Markdown
 @using RazorBlade
 
 @namespace TreeHouse.PacketDocs.Templates
 
-@inherits HtmlTemplate<FieldsList>
+@inherits HtmlTemplate<(FieldsList list, MarkdownPipeline descriptionPipeline)>
 
 @functions {
     private static readonly string[] BranchColors = new[]
@@ -33,7 +36,14 @@
                 @{ MakeBranchPaddingColumns(currentBranchDepth); }
                 <td colspan="@(maxBranchDepth - currentBranchDepth + 1)">@TypeText(field.Type)</td>
                 <td>@field.Name</td>
-                <td>TODO</td>
+                @if (field.Description != null)
+                {
+                    <td>@(new MarkdownContent(Model.descriptionPipeline, Markdown.Parse(field.Description)))</td>
+                }
+                else
+                {
+                    <td></td>
+                }
             </tr>
         }
         else if (fieldItem is Branch branch)
@@ -107,7 +117,12 @@
     };
 }
 
-@{ int maxBranchDepth = MaxBranchDepth(Model); }
+@{ int maxBranchDepth = MaxBranchDepth(Model.list); }
+
+@if (Model.list.Description != null)
+{
+    <p>@(new MarkdownContent(Model.descriptionPipeline, MarkdownParser.Parse(Model.list.Description)))</p>
+}
 
 <table class="table mb-5">
     <thead>
@@ -118,6 +133,6 @@
         </tr>
     </thead>
     <tbody>
-        @{ MakeFieldsTableRows(Model, maxBranchDepth, 0); }
+        @{ MakeFieldsTableRows(Model.list, maxBranchDepth, 0); }
     </tbody>
 </table>

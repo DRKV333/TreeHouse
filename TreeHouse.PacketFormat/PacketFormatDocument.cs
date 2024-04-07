@@ -52,6 +52,13 @@ public class FieldsList
     /// </summary>
     [YamlMember(Alias = "fields")]
     public List<IFieldItem> Fields { get; set; } = new();
+
+    /// <summary>
+    /// A description of the structures content and function. This is
+    /// intended to be a human readable text for documentation purposes.
+    /// </summary>
+    [YamlMember(Alias = "description")]
+    public string? Description { get; set; } = null;
 }
 
 /// <summary>
@@ -149,6 +156,13 @@ public class Field : IFieldItem
     /// </summary>
     [YamlMember(Alias = "type")]
     public IFieldType Type { get; set; } = null!;
+
+    /// <summary>
+    /// The field's description. This is intended to be a human readable
+    /// text for documentation purposes.
+    /// </summary>
+    [YamlMember(Alias = "description")]
+    public string? Description { get; set; } = null;
 }
 
 public interface IFieldType
