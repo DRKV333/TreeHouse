@@ -15,6 +15,7 @@ using TreeHouse.PacketDocs;
 using TreeHouse.PacketDocs.Lua;
 using TreeHouse.PacketDocs.Markdown;
 using TreeHouse.PacketDocs.Templates;
+using TreeHouse.PacketDocs.Codegen;
 using TreeHouse.PacketFormat;
 using WebMarkupMin.Core;
 using YamlDotNet.Serialization;
@@ -34,7 +35,11 @@ await new RootCommand()
     new Command("lua")
     {
         new Option<FileInfo>(new[] { "--output", "-o" }).Required()
-    }.WithHandler(LuaHandler)
+    }.WithHandler(LuaHandler),
+    new Command("codegen")
+    {
+        new Option<FileInfo>(new[] { "--output", "-o" }).Required()
+    }.WithHandler(CodegenHandler)
 }
 .WithGlobalOption(new Option<DirectoryInfo>(new[] { "--definitions", "-d" }).Required().ExistingOnly())
 .InvokeAsync(args);
@@ -175,6 +180,25 @@ async Task LuaHandler(DirectoryInfo defsDir, FileInfo output)
         },
         writer
     );
+}
+
+void CodegenHandler(DirectoryInfo defsDir, FileInfo output)
+{
+    PacketFormatDocument joinedDocument = new();
+
+    foreach (FileInfo file in defsDir.EnumerateFiles("*.yaml", new EnumerationOptions() { RecurseSubdirectories = true }))
+    {
+        if (file.Name.EndsWith(".schema.yaml"))
+            continue;
+
+        using TextReader reader = file.OpenText();
+        PacketFormatDocument document = yamlDeserializer.Deserialize<PacketFormatDocument>(reader);
+
+        joinedDocument.Packets.AddRange(document.Packets);
+        joinedDocument.Structures.AddRange(document.Structures);
+    }
+
+    File.WriteAllText(output.FullName, new CodegenTemplate(joinedDocument).Render());
 }
 
 void PrintValidationError(EvaluationResults results, int indent = 1)
