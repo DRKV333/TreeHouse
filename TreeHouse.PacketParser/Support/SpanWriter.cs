@@ -82,6 +82,8 @@ public ref struct SpanWriter
     public Buffer32 WriteBuffer32() => new Buffer32(this);
     public Buffer64 WriteBuffer64() => new Buffer64(this);
 
+    public void Write(ReadOnlySpan<byte> bytes) => bytes.CopyTo(BufferNext(bytes.Length));
+
     public void WriteHalfLE(Half value) => WriteBuffer16().WriteHalfLE(value);
     public void WriteSingleLE(Single value) => WriteBuffer32().WriteSingleLE(value);
     public void WriteDoubleLE(Double value) => WriteBuffer64().WriteDoubleLE(value);

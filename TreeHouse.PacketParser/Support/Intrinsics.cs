@@ -2,8 +2,12 @@ using System.Text;
 
 namespace TreeHouse.PacketParser.Support;
 
-internal static class StringIntrinsics
+internal static class Intrinsics
 {
+    public static bool ReadBool(this SpanReader reader) => reader.ReadByte() != 0;
+
+    public static void WriteBool(this SpanWriter writer, bool b) => writer.WriteByte(b ? (byte)1 : (byte)0);
+
     public static string ReadCString(this SpanReader reader)
     {
         int length = reader.ReadInt16LE();
