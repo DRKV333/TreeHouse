@@ -1,5 +1,5 @@
-using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Text;
 using TreeHouse.Common;
 using TreeHouse.PacketFormat;
@@ -153,7 +153,7 @@ internal class StructureBuilder
     {
         string len;
         if (int.TryParse(arrayType.Len, out int intLen))
-            len = intLen.ToString();
+            len = intLen.ToString(CultureInfo.InvariantCulture);
         else
             len = ConvertFieldName(arrayType.Len);
 
