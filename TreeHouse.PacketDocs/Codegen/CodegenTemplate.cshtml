@@ -25,7 +25,7 @@ namespace TreeHouse.PacketParser;
 
     public void RenderStructure(string name, StructureBuilder builder)
     {
-        @:  public struct @name : ISpanReadWrite
+        @:  public partial struct @name : ISpanReadWrite
         @:  {
         @:      @builder.GetMembers()
         @:
@@ -33,8 +33,6 @@ namespace TreeHouse.PacketParser;
         @:      {
         @:          @builder.GetRead()
         @:      }
-        @:
-        @:      public readonly int EstimateSize() => @(builder.GetSizeEstimate());
         @:
         @:      public readonly void Write(SpanWriter writer)
         @:      {
@@ -44,18 +42,26 @@ namespace TreeHouse.PacketParser;
     }
 }
 
+@{
+    SizeResolver resolver = new();
+    List<(string name, SizeEstimateBuilder builder)> structSizeEstimates = new();
+    List<(string name, SizeEstimateBuilder builder)> packetSizeEstimates = new();
+}
+
 @foreach (var item in Model.Structures)
 {
-    StructureBuilder builder = new();
+    string name = StructureBuilder.ConvertTypeName(item.Key);
+    StructureBuilder builder = new(resolver.CreateSelfToken(name));
+    structSizeEstimates.Add((name, builder.SizeEstimateBuilder));
     builder.AppendFieldsList(item.Value);
-    RenderStructure(StructureBuilder.ConvertTypeName(item.Key), builder);
+    RenderStructure(name, builder);
 }
 
 @foreach (var item in Model.Packets)
 {
     string className = StructureBuilder.ConvertTypeName(item.Key); 
 
-    StructureBuilder builder = new();
+    StructureBuilder builder = new(resolver.CreateSelfToken(className));
 
     string? baseType = item.Value.Inherit;
     if (baseType != null)
@@ -71,10 +77,11 @@ namespace TreeHouse.PacketParser;
     if (item.Value.Id == 0 && item.Value.SubId == 0)
     {
         RenderStructure(className, builder);
+        structSizeEstimates.Add((className, builder.SizeEstimateBuilder));
     }
     else
     {
-        @:  public class @className : PacketBranch
+        @:  public partial class @className : PacketBranch
         @:  {
         @:      @builder.GetMembers()
         @:
@@ -88,14 +95,30 @@ namespace TreeHouse.PacketParser;
         @:          @builder.GetRead()
         @:      }
         @:
-        @:      public override int EstimateSize() => @(builder.GetSizeEstimate());
-        @:
         @:      public override void Write(SpanWriter writer)
         @:      {
         @:          @builder.GetWrite()
         @:      }
         @:  }
+
+        packetSizeEstimates.Add((className, builder.SizeEstimateBuilder));
     }
+}
+
+@foreach (var item in structSizeEstimates)
+{
+    @:  public partial struct @item.name
+    @:  {
+    @:      public readonly int EstimateSize() => @(item.builder.GetSizeEstimate());
+    @:  }
+}
+
+@foreach (var item in packetSizeEstimates)
+{
+    @:  public partial class @item.name
+    @:  {
+    @:      public override int EstimateSize() => @(item.builder.GetSizeEstimate());
+    @:  }
 }
 
 public struct Packet : ISpanReadWrite

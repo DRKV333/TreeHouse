@@ -12,32 +12,20 @@ internal class StructureBuilder
     private readonly StringBuilder readBuilder = new();
     private readonly StringBuilder writeBuilder = new();
 
-    private int sizeConstant = 0;
-    private readonly List<string> sizeExpression = new();
-
     private readonly HashSet<string> members = new();
 
     private readonly Dictionary<string, string> enumMemberBaseTypes = new();
 
+    public SizeEstimateBuilder SizeEstimateBuilder { get; }
+
+    public StructureBuilder(SizeResolver.SelfToken selfSize)
+    {
+        SizeEstimateBuilder = new SizeEstimateBuilder(selfSize);
+    }
+
     public string GetMembers() => membersBuilder.ToString();
     public string GetRead() => readBuilder.ToString();
     public string GetWrite() => writeBuilder.ToString();
-    
-    public string GetSizeEstimate()
-    {
-        StringBuilder builder = new();
-
-        if (sizeConstant > 0 || sizeExpression.Count == 0)
-        {
-            builder.Append(sizeConstant);
-            if (sizeExpression.Count > 0)
-                builder.Append(" + ");
-        }
-
-        builder.AppendJoin(" + ", sizeExpression);
-
-        return builder.ToString();
-    }
 
     public static string ConvertTypeName(string type) => type.Capitalize();
 
@@ -106,10 +94,12 @@ internal class StructureBuilder
     {
         if (type.StartsWith(':'))
         {
-            AppendMember(fieldName, ConvertTypeName(type[1..]));
+            string structTypeName = ConvertTypeName(type[1..]);
+
+            AppendMember(fieldName, structTypeName);
             readBuilder.AppendLine($"{fieldName}.Read(reader);");
             writeBuilder.AppendLine($"{fieldName}.Write(writer);");
-            sizeExpression.Add($"{fieldName}.EstimateSize()");
+            SizeEstimateBuilder.AddContainedType(structTypeName, fieldName);
         }
         else if (IntrinsicSpecs.TryGetInrinsic(type, out IntrinsicSpec? spec))
         {
@@ -118,9 +108,9 @@ internal class StructureBuilder
             writeBuilder.AppendLine(spec.Write(fieldName));
 
             if (spec.Size == -1)
-                sizeExpression.Add(spec.EstimateSize!(fieldName));
+                SizeEstimateBuilder.AddExpression(spec.EstimateSize!(fieldName));
             else
-                sizeConstant += spec.Size;
+                SizeEstimateBuilder.AddConstant(spec.Size);
         }
     }
 
@@ -146,7 +136,7 @@ internal class StructureBuilder
 
         readBuilder.AppendLine($"{fieldName} = ({typeName}){spec.Read};");
         writeBuilder.AppendLine(spec.Write($"(({spec.CsType}){fieldName})"));
-        sizeConstant += spec.Size;
+        SizeEstimateBuilder.AddConstant(spec.Size);
     }
 
     private void AppendArray(string fieldName, ArrayFieldType arrayType)
@@ -159,18 +149,24 @@ internal class StructureBuilder
 
         if (arrayType.Type.StartsWith(':'))
         {
-            AppendMember(fieldName, $"{ConvertTypeName(arrayType.Type[1..])}[]");
+            string structTypeName = ConvertTypeName(arrayType.Type[1..]);
+
+            AppendMember(fieldName, $"{structTypeName}[]");
             readBuilder.AppendLine($"reader.ReadArrayStructure((int){len}, ref {fieldName});");
             writeBuilder.AppendLine($"writer.WriteArrayStructure({fieldName});");
+            SizeEstimateBuilder.AddRefencedArrayType(structTypeName, fieldName);
         }
         else if (IntrinsicSpecs.TryGetArrayInrinsic(arrayType.Type, out IntrinsicArraySpec? arraySpec))
         {
             AppendMember(fieldName, arraySpec.CsType);
             readBuilder.AppendLine(arraySpec.Read(fieldName, len));
             writeBuilder.AppendLine(arraySpec.Write(fieldName));
-        }
 
-        // TODO: Size
+            if (arraySpec.ElementSize == -1)
+                SizeEstimateBuilder.AddExpression(arraySpec.EstimateSize!(fieldName));
+            else
+                SizeEstimateBuilder.AddExpression($"({fieldName}.Length * {arraySpec.ElementSize})");
+        }
     }
 
     private void AppendMember(string fieldName, string fieldType)
