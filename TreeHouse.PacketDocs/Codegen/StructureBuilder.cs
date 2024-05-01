@@ -128,7 +128,7 @@ internal class StructureBuilder
 
         foreach (var item in enumType.Enum)
         {
-            membersBuilder.Append($"    {ConvertFieldName(item.Value)} = {item.Key},");
+            membersBuilder.AppendLine($"    {ConvertFieldName(item.Value)} = {item.Key},");
         }
 
         membersBuilder.AppendLine("}");
