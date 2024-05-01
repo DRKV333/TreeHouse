@@ -6,7 +6,7 @@ namespace TreeHouse.PacketDocs.Codegen;
 
 internal record class IntrinsicSpec(
     string CsType,
-    string Read,
+    Func<string, string> Read,
     Func<string, string> Write,
     int Size,
     Func<string, string>? EstimateSize = null
@@ -26,87 +26,87 @@ internal static class IntrinsicSpecs
     {
         { "bool", new IntrinsicSpec(
             "bool",
-            "reader.ReadBool()",
+            f => $"{f} = reader.ReadBool();",
             f => $"writer.WriteBool({f});",
             sizeof(byte)
         )},
         { "u8", new IntrinsicSpec(
             "byte",
-            "reader.ReadByte()",
+            f => $"{f} = reader.ReadByte();",
             f => $"writer.WriteByte({f});",
             sizeof(byte)
         )},
         { "u16", new IntrinsicSpec(
             "ushort",
-            "reader.ReadUInt16LE()",
+            f => $"{f} = reader.ReadUInt16LE();",
             f => $"writer.WriteUInt16LE({f});",
             sizeof(ushort)
         )},
         { "u32", new IntrinsicSpec(
             "uint",
-            "reader.ReadUInt32LE()",
+            f => $"{f} = reader.ReadUInt32LE();",
             f => $"writer.WriteUInt32LE({f});",
             sizeof(uint)
         )},
         { "u64", new IntrinsicSpec(
             "ulong",
-            "reader.ReadUInt64LE()",
+            f => $"{f} = reader.ReadUInt64LE();",
             f => $"writer.WriteUInt64LE({f});",
             sizeof(ulong)
         )},
         { "i8", new IntrinsicSpec(
             "sbyte",
-            "reader.ReadSByte()",
+            f => $"{f} = reader.ReadSByte();",
             f => $"writer.WriteSByte({f});",
             sizeof(sbyte)
         )},
         { "i16", new IntrinsicSpec(
             "short",
-            "reader.ReadInt16LE()",
+            f => $"{f} = reader.ReadInt16LE();",
             f => $"writer.WriteInt16LE({f});",
             sizeof(short)
         )},
         { "i32", new IntrinsicSpec(
             "int",
-            "reader.ReadInt32LE()",
+            f => $"{f} = reader.ReadInt32LE();",
             f => $"writer.WriteInt32LE({f});",
             sizeof(int)
         )},
         { "i64", new IntrinsicSpec(
             "long",
-            "reader.ReadInt64LE()",
+            f => $"{f} = reader.ReadInt64LE();",
             f => $"writer.WriteInt64LE({f});",
             sizeof(long)
         )},
         { "f32", new IntrinsicSpec(
             "float",
-            "reader.ReadSingleLE()",
+            f => $"{f} = reader.ReadSingleLE();",
             f => $"writer.WriteSingleLE({f});",
             sizeof(float)
         )},
         { "f64", new IntrinsicSpec(
             "double",
-            "reader.ReadDoubleLE()",
+            f => $"{f} = reader.ReadDoubleLE();",
             f => $"writer.WriteDoubleLE({f});",
             sizeof(double)
         )},
         { "cstring", new IntrinsicSpec(
             "string",
-            "reader.ReadCString()",
+            f => $"{f} = reader.ReadCString();",
             f => $"writer.WriteCString({f});",
             -1,
             f => $"Intrinsics.EstimateCString({f})"
         )},
         { "wstring", new IntrinsicSpec(
             "string",
-            "reader.ReadCString()",
+            f => $"{f} = reader.ReadCString();",
             f => $"writer.WriteCString({f});",
             -1,
             f => $"Intrinsics.EstimateWString({f})"
         )},
         { "uuid", new IntrinsicSpec(
             "global::System.Guid",
-            "reader.ReadGuidLE()",
+            f => $"{f} = reader.ReadGuidLE();",
             f => $"writer.WriteGuidLE({f});",
             16
         )}
@@ -207,4 +207,28 @@ internal static class IntrinsicSpecs
     
     public static bool TryGetArrayInrinsic(string name, [NotNullWhen(true)] out IntrinsicArraySpec? instrinsic) =>
         arraySpecs.TryGetValue(name, out instrinsic);
+
+    public static IntrinsicSpec GetIntrinsicFromStructure(string structTypeName) => new IntrinsicSpec(
+        structTypeName,
+        f => $"{f}.Read(reader);",
+        f => $"{f}.Write(writer);",
+        -1,
+        EstimateStructureSize
+    );
+
+    public static IntrinsicArraySpec GetArrayFromStructure(string structTypeName) => new IntrinsicArraySpec(
+        $"{structTypeName}[]",
+        (f, l) => $"reader.ReadArrayStructure((int){l}, ref {f});",
+        f => $"writer.WriteArrayStructure({f});",
+        -1,
+        EstimateArrayStructureSize
+    );
+
+    public static string ArrayLength(string fieldName) => $"{fieldName}.Length";
+
+    public static string EstimateStructureSize(string fieldName) => $"{fieldName}.EstimateSize()";
+
+    public static string EstimateArrayStructureSize(string fieldName) => $"ArrayIntrinsics.EstimateArrayStructure({fieldName})";
+
+    public static string ReadAndCast(IntrinsicSpec spec, string fieldName, string targetType) => spec.Read(fieldName).Replace(" = ", $" = ({targetType})");
 }

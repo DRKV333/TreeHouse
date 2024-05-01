@@ -48,6 +48,22 @@ internal class SizeEstimateBuilder
     public void AddRefencedArrayType(string type, string fieldName) =>
         referencedArrayTypes.Add(new FieldReferenceToken(sizeResolver.CreateReferenceToken(type), fieldName));
 
+    public void AddIntrinsic(IntrinsicSpec spec, string fieldName)
+    {
+        if (spec.Size == -1)
+            AddExpression(spec.EstimateSize!(fieldName));
+        else
+            AddConstant(spec.Size);
+    }
+
+    public void AddIntrinsicArray(IntrinsicArraySpec arraySpec, string fieldName)
+    {
+        if (arraySpec.ElementSize == -1)
+            AddExpression(arraySpec.EstimateSize!(fieldName));
+        else
+            AddExpression(EstimateArrayWithContantElementSize(fieldName, arraySpec.ElementSize));
+    }
+
     public string GetSizeEstimate()
     {
         ResolveOtherTypes();
@@ -72,7 +88,7 @@ internal class SizeEstimateBuilder
         {
             int? size = item.Token.GetSize();
             if (size == null)
-                sizeExpressions.Add($"{item.FieldName}.EstimateSize()");
+                sizeExpressions.Add(IntrinsicSpecs.EstimateStructureSize(item.FieldName));
             else
                 sizeConstant += size.Value;
         }
@@ -82,10 +98,13 @@ internal class SizeEstimateBuilder
         {
             int? size = item.Token.GetSize();
             if (size == null)
-                sizeExpressions.Add($"ArrayIntrinsics.EstimateArrayStructure({item.FieldName})");
+                sizeExpressions.Add(IntrinsicSpecs.EstimateArrayStructureSize(item.FieldName));
             else
-                sizeExpressions.Add($"({item.FieldName}.Length * {size})");
+                sizeExpressions.Add(EstimateArrayWithContantElementSize(item.FieldName, size.Value));
         }
         referencedArrayTypes.Clear();
     }
+
+    private static string EstimateArrayWithContantElementSize(string fieldName, int elementSize) =>
+        $"({IntrinsicSpecs.ArrayLength(fieldName)} * {elementSize})";
 }
