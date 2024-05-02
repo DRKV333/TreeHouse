@@ -36,43 +36,44 @@ internal class StructureBuilder
         foreach (var item in fields.Fields)
         {
             if (item is Branch branch)
-            {
-                string fieldName = ConvertFieldName(branch.Details.Field);
-
-                string compareFrom;
-                if (enumMemberBaseTypes.TryGetValue(fieldName, out string? enumTypeName))
-                    compareFrom = $"(({enumTypeName}){fieldName})";
-                else
-                    compareFrom = fieldName;
-
-                string condition;
-                if (branch.Details.TestEqual != null)
-                    condition = $"{compareFrom} == {branch.Details.TestEqual}";
-                else if (branch.Details.TestFlag != null)
-                    condition = $"({compareFrom} & {branch.Details.TestFlag}) == {branch.Details.TestFlag}";
-                else
-                    condition = compareFrom;
-
-                AppendLineReadWrite($"if ({condition})");
-                AppendLineReadWrite("{");
-
-                if (branch.Details.IsTrue != null)
-                    AppendFieldsList(branch.Details.IsTrue);
-
-                AppendLineReadWrite("}");
-                AppendLineReadWrite("else");
-                AppendLineReadWrite("{");
-
-                if (branch.Details.IsFalse != null)
-                    AppendFieldsList(branch.Details.IsFalse);
-
-                AppendLineReadWrite("}");
-            }
+                AppendBranch(branch.Details);
             else if (item is Field field)
-            {
                 AppendField(field);
-            }
         }
+    }
+
+    private void AppendBranch(BranchDetails branch)
+    {
+        string fieldName = ConvertFieldName(branch.Field);
+
+        string compareFrom;
+        if (enumMemberBaseTypes.TryGetValue(fieldName, out string? enumTypeName))
+            compareFrom = $"(({enumTypeName}){fieldName})";
+        else
+            compareFrom = fieldName;
+
+        string condition;
+        if (branch.TestEqual != null)
+            condition = $"{compareFrom} == {branch.TestEqual}";
+        else if (branch.TestFlag != null)
+            condition = $"({compareFrom} & {branch.TestFlag}) == {branch.TestFlag}";
+        else
+            condition = compareFrom;
+
+        AppendLineReadWrite($"if ({condition})");
+        AppendLineReadWrite("{");
+
+        if (branch.IsTrue != null)
+            AppendFieldsList(branch.IsTrue);
+
+        AppendLineReadWrite("}");
+        AppendLineReadWrite("else");
+        AppendLineReadWrite("{");
+
+        if (branch.IsFalse != null)
+            AppendFieldsList(branch.IsFalse);
+
+        AppendLineReadWrite("}");
     }
 
     public void AppendField(Field field)
