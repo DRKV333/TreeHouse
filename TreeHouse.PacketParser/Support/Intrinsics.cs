@@ -21,7 +21,7 @@ internal static class Intrinsics
         lengthBuffer.WriteInt16LE((short)length);
     }
 
-    public static int EstimateCString(string str) => Encoding.ASCII.GetMaxByteCount(str.Length);
+    public static int EstimateCString(string str) => sizeof(short) + Encoding.ASCII.GetMaxByteCount(str.Length);
 
     public static string ReadWString(this SpanReader reader)
     {
@@ -36,5 +36,5 @@ internal static class Intrinsics
         lengthBuffer.WriteInt16LE((short)(lenght / 2));
     }
 
-    public static int EstimateWString(string str) => Encoding.Unicode.GetMaxByteCount(str.Length);
+    public static int EstimateWString(string str) => sizeof(short) + Encoding.Unicode.GetMaxByteCount(str.Length);
 }
