@@ -14,6 +14,7 @@ public enum CheckerErrorReason
     EmptyBranch,
     FieldTypeDifferentOnBranch,
     ReferencedFieldDoesNotExist,
+    ReferencedFieldNotDefinitelyDefined,
     BranchIntegerNoCondition,
     BranchBadFieldType,
     LengthBadFieldType,
@@ -47,7 +48,8 @@ public record class DocumentCheckerError(
             CheckerErrorReason.MultipleFieldDefinition => $"A field with this name was already defined at this point, possibly with a different type.",
             CheckerErrorReason.EmptyBranch => $"Branch should provide at least of isTrue or isFalse.",
             CheckerErrorReason.FieldTypeDifferentOnBranch => $"The type of the field {Related} was different on the two sides of this branch.",
-            CheckerErrorReason.ReferencedFieldDoesNotExist => $"The referenced field {Related} might not be defined at this point.",
+            CheckerErrorReason.ReferencedFieldDoesNotExist => $"The referenced field {Related} was never defined before this point.",
+            CheckerErrorReason.ReferencedFieldNotDefinitelyDefined => $"The referenced field {Related} might not be defined at this point.",
             CheckerErrorReason.BranchIntegerNoCondition => $"Branch on integer type field {Related} should specify exactly one of test_equal or test_flag.",
             CheckerErrorReason.BranchBadFieldType => $"The field {Related} can't be used in a branch, as it isn't an integer or boolean.",
             CheckerErrorReason.LengthBadFieldType => $"The field {Related} can't be used as length, as it isn't an integer.",
@@ -171,11 +173,7 @@ public class DocumentChecker
                 if (branch.Details.IsTrue == null && branch.Details.IsFalse == null)
                     Error(site, CheckerErrorReason.EmptyBranch);
 
-                if (!IsDefinitelyDefined(branch.Details.Field, definitions, out FieldDefinitionInfo? branchField))
-                {
-                    Error(site, CheckerErrorReason.ReferencedFieldDoesNotExist, branch.Details.Field);
-                }
-                else
+                if (MakeSureIsDefinitelyDefined(site, branch.Details.Field, definitions, out FieldDefinitionInfo? branchField))
                 {
                     if (IsIntrinsicIntegerOrEnum(branchField.Field.Type))
                     {
@@ -209,27 +207,24 @@ public class DocumentChecker
                 {
                     foreach (var (fieldName, fieldInfo) in definitionsTrue)
                     {
-                        if (definitionsFalse != null)
+                        if (definitionsFalse != null && definitionsFalse.TryGetValue(fieldName, out FieldDefinitionInfo? otherBranchInfo))
                         {
-                            if (definitionsFalse.TryGetValue(fieldName, out FieldDefinitionInfo? otherBranchInfo))
+                            if (!IsTheSameType(fieldInfo.Field.Type, otherBranchInfo.Field.Type))
                             {
-                                if (!IsTheSameType(fieldInfo.Field.Type, otherBranchInfo.Field.Type))
-                                {
-                                    Error(site, CheckerErrorReason.FieldTypeDifferentOnBranch, fieldName);
-                                    fieldInfo.DefinitelyDefined = false;
-                                }
-                                else
-                                {
-                                    fieldInfo.DefinitelyDefined &= otherBranchInfo.DefinitelyDefined;
-                                }
+                                Error(site, CheckerErrorReason.FieldTypeDifferentOnBranch, fieldName);
+                                fieldInfo.DefinitelyDefined = false;
                             }
                             else
                             {
-                                fieldInfo.DefinitelyDefined = false;
+                                fieldInfo.DefinitelyDefined &= otherBranchInfo.DefinitelyDefined;
                             }
                         }
-                        
-                        if (!definitions.TryAddOrGet(fieldName, fieldInfo, out FieldDefinitionInfo? alreadyInParent))
+                        else
+                        {
+                            fieldInfo.DefinitelyDefined = false;
+                        }
+
+                        if (!definitions.TryAddOrGet(fieldName, fieldInfo, out FieldDefinitionInfo? alreadyInParent) && !alreadyInParent.DefinitelyDefined)
                         {
                             alreadyInParent.DefinitelyDefined = fieldInfo.DefinitelyDefined;
                         }
@@ -252,15 +247,34 @@ public class DocumentChecker
     {
         if (!IsDigitsOnly(len))
         {
-            if (!IsDefinitelyDefined(len, definitions, out FieldDefinitionInfo? arrayLenField))
-                Error(site, CheckerErrorReason.ReferencedFieldDoesNotExist, len);
-            else if (!IsIntrinsicIntegerOrEnum(arrayLenField.Field.Type))
+            if (MakeSureIsDefinitelyDefined(site, len, definitions, out FieldDefinitionInfo? arrayLenField) &&
+                !IsIntrinsicIntegerOrEnum(arrayLenField.Field.Type))
+            {
                 Error(site, CheckerErrorReason.LengthBadFieldType, len);
+            }
         }
     }
 
-    private static bool IsDefinitelyDefined(string field, Dictionary<string, FieldDefinitionInfo> definitions, [NotNullWhen(true)] out FieldDefinitionInfo? fieldInfo) =>
-        definitions.TryGetValue(field, out fieldInfo) && fieldInfo.DefinitelyDefined;
+    private bool MakeSureIsDefinitelyDefined(CheckerErrorSite site, string field, Dictionary<string, FieldDefinitionInfo> definitions, [NotNullWhen(true)] out FieldDefinitionInfo? fieldInfo)
+    {
+        if (!definitions.TryGetValue(field, out fieldInfo))
+        {
+            Error(site, CheckerErrorReason.ReferencedFieldDoesNotExist, field);
+            return false;
+        }
+        else
+        {
+            if (!fieldInfo.DefinitelyDefined)
+            {
+                Error(site, CheckerErrorReason.ReferencedFieldNotDefinitelyDefined, field);
+                return false;
+            }
+            else
+            {
+                return true;
+            }
+        }
+    }
 
     private static bool IsTheSameType(IFieldType first, IFieldType second) => first switch
     {

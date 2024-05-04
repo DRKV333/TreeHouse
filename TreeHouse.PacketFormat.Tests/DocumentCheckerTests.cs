@@ -242,6 +242,53 @@ public class DocumentCheckerTests
     }
 
     [Test]
+    public void ReferencedFieldMightNotExist()
+    {
+        DocumentChecker checker = new();
+
+        checker.CheckDocument("a", new PacketFormatDocument()
+        {
+            Structures = new()
+            {
+                ["SomeStruct"] = new FieldsList()
+                {
+                    Fields = new()
+                    {
+                        new Field() { Name = "SomeField", Type = new PrimitiveFieldType() { Value = "bool" } },
+                        new Branch()
+                        {
+                            Details = new BranchDetails()
+                            {
+                                Field = "SomeField",
+                                IsTrue = new FieldsList()
+                                {
+                                    Fields = new()
+                                    {
+                                        new Field() { Name = "OtherField", Type = new PrimitiveFieldType() { Value = "i32" } }
+                                    }
+                                }
+                            }
+                        },
+                        new Field()
+                        {
+                            Name = "Test",
+                            Type = new ArrayFieldType()
+                            {
+                                Type = "bool",
+                                Len = "OtherField"
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        checker.CheckReferences();
+        Assert.That(ErrorReasons(checker), Is.EquivalentTo(new[] { CheckerErrorReason.ReferencedFieldNotDefinitelyDefined }));
+        TestContext.WriteLine(checker.Errors.First());
+    }
+
+    [Test]
     public void BranchIntegerNoCondition()
     {
         DocumentChecker checker = new();
