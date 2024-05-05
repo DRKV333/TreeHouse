@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Text;
 
 namespace TreeHouse.PacketDocs.Codegen;
 
@@ -10,8 +9,8 @@ internal class SizeEstimateBuilder
         string FieldName
     );
 
-    private int sizeConstant = 0;
-    private readonly List<string> sizeExpressions = new();
+    private readonly SizeBuilder builder = new();
+
     private readonly List<FieldReferenceToken> containedTypes = new();
     private readonly List<FieldReferenceToken> referencedArrayTypes = new();
 
@@ -22,7 +21,7 @@ internal class SizeEstimateBuilder
         sizeResolver = selfSize.Resolver;
 
         selfSize.SetResolveDelegate(() => {
-            if (sizeExpressions.Count > 0)
+            if (!builder.IsConstant)
             {
                 return null;
             }
@@ -30,17 +29,13 @@ internal class SizeEstimateBuilder
             {
                 ResolveOtherTypes();
 
-                if (sizeExpressions.Count > 0)
+                if (!builder.IsConstant)
                     return null;
                 else
-                    return sizeConstant;
+                    return builder.SizeConstant;
             }
         });
     }
-
-    public void AddConstant(int c) => sizeConstant += c;
-
-    public void AddExpression(string expression) => sizeExpressions.Add(expression);
 
     public void AddContainedType(string type, string fieldName) =>
         containedTypes.Add(new FieldReferenceToken(sizeResolver.CreateReferenceToken(type), fieldName));
@@ -51,35 +46,23 @@ internal class SizeEstimateBuilder
     public void AddIntrinsic(IntrinsicSpec spec, string fieldName)
     {
         if (spec.Size == -1)
-            AddExpression(spec.EstimateSize!(fieldName));
+            builder.AddExpression(spec.EstimateSize!(fieldName));
         else
-            AddConstant(spec.Size);
+            builder.AddConstant(spec.Size);
     }
 
     public void AddIntrinsicArray(IntrinsicArraySpec arraySpec, string fieldName)
     {
         if (arraySpec.ElementSize == -1)
-            AddExpression(arraySpec.EstimateSize!(fieldName));
+            builder.AddExpression(arraySpec.EstimateSize!(fieldName));
         else
-            AddExpression(EstimateArrayWithContantElementSize(fieldName, arraySpec.ElementSize));
+            builder.AddExpression(IntrinsicSpecs.ArraySizeWithContantElementSize(fieldName, arraySpec.ElementSize));
     }
 
     public string GetSizeEstimate()
     {
         ResolveOtherTypes();
-
-        StringBuilder builder = new();
-
-        if (sizeConstant > 0 || sizeExpressions.Count == 0)
-        {
-            builder.Append(sizeConstant);
-            if (sizeExpressions.Count > 0)
-                builder.Append(" + ");
-        }
-
-        builder.AppendJoin(" + ", sizeExpressions);
-
-        return builder.ToString();
+        return builder.GetSize();
     }
 
     private void ResolveOtherTypes()
@@ -88,9 +71,9 @@ internal class SizeEstimateBuilder
         {
             int? size = item.Token.GetSize();
             if (size == null)
-                sizeExpressions.Add(IntrinsicSpecs.EstimateStructureSize(item.FieldName));
+                builder.AddExpression(IntrinsicSpecs.EstimateStructureSize(item.FieldName));
             else
-                sizeConstant += size.Value;
+                builder.AddConstant(size.Value);
         }
         containedTypes.Clear();
 
@@ -98,13 +81,10 @@ internal class SizeEstimateBuilder
         {
             int? size = item.Token.GetSize();
             if (size == null)
-                sizeExpressions.Add(IntrinsicSpecs.EstimateArrayStructureSize(item.FieldName));
+                builder.AddExpression(IntrinsicSpecs.EstimateArrayStructureSize(item.FieldName));
             else
-                sizeExpressions.Add(EstimateArrayWithContantElementSize(item.FieldName, size.Value));
+                builder.AddExpression(IntrinsicSpecs.ArraySizeWithContantElementSize(item.FieldName, size.Value));
         }
         referencedArrayTypes.Clear();
     }
-
-    private static string EstimateArrayWithContantElementSize(string fieldName, int elementSize) =>
-        $"({IntrinsicSpecs.ArrayLength(fieldName)} * {elementSize})";
 }

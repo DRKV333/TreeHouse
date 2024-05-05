@@ -231,4 +231,7 @@ internal static class IntrinsicSpecs
     public static string EstimateArrayStructureSize(string fieldName) => $"ArrayIntrinsics.EstimateArrayStructure({fieldName})";
 
     public static string ReadAndCast(IntrinsicSpec spec, string fieldName, string targetType) => spec.Read(fieldName).Replace(" = ", $" = ({targetType})");
+
+    public static string ArraySizeWithContantElementSize(string fieldName, int elementSize) =>
+        $"({IntrinsicSpecs.ArrayLength(fieldName)} * {elementSize})";
 }

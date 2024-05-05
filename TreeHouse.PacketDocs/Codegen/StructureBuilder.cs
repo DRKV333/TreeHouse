@@ -134,9 +134,11 @@ internal class StructureBuilder
 
         membersBuilder.AppendLine("}");
 
+        string fieldNameCast = $"(({spec.CsType}){fieldName})";
+
         readBuilder.AppendLine(IntrinsicSpecs.ReadAndCast(spec, fieldName, typeName));
-        writeBuilder.AppendLine(spec.Write($"(({spec.CsType}){fieldName})"));
-        SizeEstimateBuilder.AddConstant(spec.Size);
+        writeBuilder.AppendLine(spec.Write(fieldNameCast));
+        SizeEstimateBuilder.AddIntrinsic(spec, fieldNameCast);
     }
 
     private void AppendArray(string fieldName, ArrayFieldType arrayType)
