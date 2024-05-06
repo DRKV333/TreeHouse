@@ -29,7 +29,7 @@ public record struct CheckerErrorSite(
     string SiteDetail
 )
 {
-    public override string ToString() => $"{DocumentId}#{SiteObject}#{SiteDetail}";
+    public override readonly string ToString() => $"{DocumentId}#{SiteObject}#{SiteDetail}";
 }
 
 public record class DocumentCheckerError(
@@ -62,6 +62,145 @@ public record class DocumentCheckerError(
 
 public class DocumentChecker
 {
+    private record struct VisitorParams(
+        CheckerErrorSite Site,
+        Dictionary<string, FieldDefinitionInfo> Definitions
+    );
+
+    private class CheckerVisitor : FieldsListVisitor<VisitorParams>
+    {
+        public required DocumentChecker Checker { get; init; }
+
+        protected override void VisitFieldItem(IFieldItem item, int index, VisitorParams param)
+        {
+            base.VisitFieldItem(item, index, param);
+        }
+
+        protected override void VisitField(Field field, int index, VisitorParams param)
+        {
+            CheckerErrorSite site = param.Site with { SiteDetail = $"{param.Site.SiteDetail}.{index}:{field.Name}" };
+            base.VisitField(field, index, param with { Site = site });
+
+            if (field.Name == null)
+                return;
+
+            FieldDefinitionInfo info = new()
+            {
+                Field = field,
+                DefinitelyDefined = true
+            };
+
+            if (!param.Definitions.TryAddOrGet(field.Name, info, out FieldDefinitionInfo? existingInfo))
+            {
+                if (!existingInfo.DefinitelyDefined && IsTheSameType(field.Type, existingInfo.Field.Type))
+                    existingInfo.DefinitelyDefined = true;
+                else
+                    Checker.Error(site, CheckerErrorReason.MultipleFieldDefinition);
+            }
+        }
+
+        protected override void VisitArray(Field field, int index, ArrayFieldType type, VisitorParams param)
+        {
+            Checker.CheckLen(param.Site, type.Len, param.Definitions);
+            Checker.CheckForStructReference(param.Site, type.Type);
+            base.VisitArray(field, index, type, param);
+        }
+
+        protected override void VisitLimitedString(Field field, int index, LimitedStringFieldType type, VisitorParams param)
+        {
+            Checker.CheckLen(param.Site, type.Maxlen, param.Definitions);
+            base.VisitLimitedString(field, index, type, param);
+        }
+
+        protected override void VisitPrimitive(Field field, int index, PrimitiveFieldType type, VisitorParams param)
+        {
+            Checker.CheckForStructReference(param.Site, type.Value);
+            base.VisitPrimitive(field, index, type, param);
+        }
+
+        protected override void VisitEnum(Field field, int index, EnumFieldType type, VisitorParams param)
+        {
+            if (!IsIntegerTypeName(type.Name))
+                Checker.Error(param.Site, CheckerErrorReason.EnumTypeBadType, type.Name);
+            base.VisitEnum(field, index, type, param);
+        }
+
+        protected override void VisitBranch(BranchDetails branch, int index, VisitorParams param)
+        {
+            CheckerErrorSite site = param.Site with { SiteDetail = $"{param.Site.SiteDetail}.{index}" };
+
+            if (branch.IsTrue == null && branch.IsFalse == null)
+                Checker.Error(site, CheckerErrorReason.EmptyBranch);
+
+            if (Checker.MakeSureIsDefinitelyDefined(site, branch.Field, param.Definitions, out FieldDefinitionInfo? branchField))
+            {
+                if (IsIntrinsicIntegerOrEnum(branchField.Field.Type))
+                {
+                    if (branch.TestFlag.HasValue == branch.TestEqual.HasValue)
+                        Checker.Error(site, CheckerErrorReason.BranchIntegerNoCondition, branch.Field);
+                }
+                else if (!IsIntrinsicBool(branchField.Field.Type))
+                {
+                    Checker.Error(site, CheckerErrorReason.BranchBadFieldType, branch.Field);
+                }
+            }   
+            
+            Dictionary<string, FieldDefinitionInfo>? definitionsTrue = null;
+            Dictionary<string, FieldDefinitionInfo>? definitionsFalse = null;
+            
+            if (branch.IsTrue != null)
+            {
+                CheckerErrorSite siteTrue = site with { SiteDetail = $"{site.SiteDetail}(true)" };
+                definitionsTrue = param.Definitions.ToDictionary(x => x.Key, x => x.Value.Clone());
+                VisitFieldsList(branch.IsTrue, param with { Site = siteTrue, Definitions = definitionsTrue});
+            }
+
+            if (branch.IsFalse != null)
+            {
+                CheckerErrorSite siteFalse = site with { SiteDetail = $"{site.SiteDetail}(false)" };
+                definitionsFalse = param.Definitions.ToDictionary(x => x.Key, x => x.Value.Clone());
+                VisitFieldsList(branch.IsFalse, param with { Site = siteFalse, Definitions = definitionsFalse });
+            }
+
+            if (definitionsTrue != null)
+            {
+                foreach (var (fieldName, fieldInfo) in definitionsTrue)
+                {
+                    if (definitionsFalse != null && definitionsFalse.TryGetValue(fieldName, out FieldDefinitionInfo? otherBranchInfo))
+                    {
+                        if (!IsTheSameType(fieldInfo.Field.Type, otherBranchInfo.Field.Type))
+                        {
+                            Checker.Error(site, CheckerErrorReason.FieldTypeDifferentOnBranch, fieldName);
+                            fieldInfo.DefinitelyDefined = false;
+                        }
+                        else
+                        {
+                            fieldInfo.DefinitelyDefined &= otherBranchInfo.DefinitelyDefined;
+                        }
+                    }
+                    else
+                    {
+                        fieldInfo.DefinitelyDefined = false;
+                    }
+
+                    if (!param.Definitions.TryAddOrGet(fieldName, fieldInfo, out FieldDefinitionInfo? alreadyInParent) && !alreadyInParent.DefinitelyDefined)
+                    {
+                        alreadyInParent.DefinitelyDefined = fieldInfo.DefinitelyDefined;
+                    }
+                }
+            }
+
+            if (definitionsFalse != null)
+            {
+                foreach (var (fieldName, fieldInfo) in definitionsFalse)
+                {
+                    fieldInfo.DefinitelyDefined = false;
+                    param.Definitions.TryAdd(fieldName, fieldInfo);
+                }
+            }
+        }
+    }
+
     private sealed class FieldDefinitionInfo
     {
         public required Field Field { get; init; }
@@ -124,123 +263,12 @@ public class DocumentChecker
 
     private void CheckFields(CheckerErrorSite parentSite, FieldsList fields, Dictionary<string, FieldDefinitionInfo> definitions)
     {
-        foreach (var (item, index) in fields.Fields.WithIndex())
+        CheckerVisitor visitor = new()
         {
-            if (item is Field field)
-            {
-                CheckerErrorSite site = parentSite with { SiteDetail = $"{parentSite.SiteDetail}.{index}:{field.Name}" };
+            Checker = this
+        };
 
-                if (field.Type is ArrayFieldType arrayType)
-                {
-                    CheckLen(site, arrayType.Len, definitions);
-                    CheckForStructReference(site, arrayType.Type);
-                }
-                else if (field.Type is LimitedStringFieldType limitedStringType)
-                {
-                    CheckLen(site, limitedStringType.Maxlen, definitions);
-                }
-                else if (field.Type is PrimitiveFieldType primitive)
-                {
-                    CheckForStructReference(site, primitive.Value);
-                }
-                else if (field.Type is EnumFieldType enumType)
-                {
-                    if (!IsIntegerTypeName(enumType.Name))
-                        Error(site, CheckerErrorReason.EnumTypeBadType, enumType.Name);
-                }
-
-                if (field.Name == null)
-                    continue;
-
-                FieldDefinitionInfo info = new FieldDefinitionInfo()
-                {
-                    Field = field,
-                    DefinitelyDefined = true
-                };
-
-                if (!definitions.TryAddOrGet(field.Name, info, out FieldDefinitionInfo? existingInfo))
-                {
-                    if (!existingInfo.DefinitelyDefined && IsTheSameType(field.Type, existingInfo.Field.Type))
-                        existingInfo.DefinitelyDefined = true;
-                    else
-                        Error(site, CheckerErrorReason.MultipleFieldDefinition);
-                }
-            }
-            else if (item is Branch branch)
-            {
-                CheckerErrorSite site = parentSite with { SiteDetail = $"{parentSite.SiteDetail}.{index}" };
-
-                if (branch.Details.IsTrue == null && branch.Details.IsFalse == null)
-                    Error(site, CheckerErrorReason.EmptyBranch);
-
-                if (MakeSureIsDefinitelyDefined(site, branch.Details.Field, definitions, out FieldDefinitionInfo? branchField))
-                {
-                    if (IsIntrinsicIntegerOrEnum(branchField.Field.Type))
-                    {
-                        if (branch.Details.TestFlag.HasValue == branch.Details.TestEqual.HasValue)
-                            Error(site, CheckerErrorReason.BranchIntegerNoCondition, branch.Details.Field);
-                    }
-                    else if (!IsIntrinsicBool(branchField.Field.Type))
-                    {
-                        Error(site, CheckerErrorReason.BranchBadFieldType, branch.Details.Field);
-                    }
-                }   
-                
-                Dictionary<string, FieldDefinitionInfo>? definitionsTrue = null;
-                Dictionary<string, FieldDefinitionInfo>? definitionsFalse = null;
-                
-                if (branch.Details.IsTrue != null)
-                {
-                    CheckerErrorSite siteTrue = site with { SiteDetail = $"{site.SiteDetail}(true)" };
-                    definitionsTrue = definitions.ToDictionary(x => x.Key, x => x.Value.Clone());
-                    CheckFields(siteTrue, branch.Details.IsTrue, definitionsTrue);
-                }
-
-                if (branch.Details.IsFalse != null)
-                {
-                    CheckerErrorSite siteFalse = site with { SiteDetail = $"{site.SiteDetail}(false)" };
-                    definitionsFalse = definitions.ToDictionary(x => x.Key, x => x.Value.Clone());
-                    CheckFields(siteFalse, branch.Details.IsFalse, definitionsFalse);
-                }
-
-                if (definitionsTrue != null)
-                {
-                    foreach (var (fieldName, fieldInfo) in definitionsTrue)
-                    {
-                        if (definitionsFalse != null && definitionsFalse.TryGetValue(fieldName, out FieldDefinitionInfo? otherBranchInfo))
-                        {
-                            if (!IsTheSameType(fieldInfo.Field.Type, otherBranchInfo.Field.Type))
-                            {
-                                Error(site, CheckerErrorReason.FieldTypeDifferentOnBranch, fieldName);
-                                fieldInfo.DefinitelyDefined = false;
-                            }
-                            else
-                            {
-                                fieldInfo.DefinitelyDefined &= otherBranchInfo.DefinitelyDefined;
-                            }
-                        }
-                        else
-                        {
-                            fieldInfo.DefinitelyDefined = false;
-                        }
-
-                        if (!definitions.TryAddOrGet(fieldName, fieldInfo, out FieldDefinitionInfo? alreadyInParent) && !alreadyInParent.DefinitelyDefined)
-                        {
-                            alreadyInParent.DefinitelyDefined = fieldInfo.DefinitelyDefined;
-                        }
-                    }
-                }
-
-                if (definitionsFalse != null)
-                {
-                    foreach (var (fieldName, fieldInfo) in definitionsFalse)
-                    {
-                        fieldInfo.DefinitelyDefined = false;
-                        definitions.TryAdd(fieldName, fieldInfo);
-                    }
-                }
-            }
-        }
+        visitor.VisitFieldsList(fields, new VisitorParams(parentSite, definitions));
     }
 
     private void CheckLen(CheckerErrorSite site, string len, Dictionary<string, FieldDefinitionInfo> definitions)
