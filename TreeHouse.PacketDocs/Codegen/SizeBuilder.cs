@@ -3,6 +3,13 @@ using System.Text;
 
 namespace TreeHouse.PacketDocs.Codegen;
 
+internal readonly record struct Size(
+    int Constant,
+    string Expression
+) {
+    public readonly bool IsConstant => Expression.Length == 0;
+}
+
 internal class SizeBuilder
 {
     public int SizeConstant { get; private set; } = 0;
@@ -16,7 +23,7 @@ internal class SizeBuilder
 
     public void AddExpression(string expression) => sizeExpressions.Add(expression);
 
-    public string GetSize()
+    public Size GetSize()
     {
         StringBuilder builder = new();
 
@@ -29,6 +36,6 @@ internal class SizeBuilder
 
         builder.AppendJoin(" + ", sizeExpressions);
 
-        return builder.ToString();
+        return new Size(SizeConstant, builder.ToString());
     }
 }
