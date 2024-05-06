@@ -74,11 +74,11 @@ internal static class ArrayIntrinsics
         }
     }
 
-    public static void WriteArrayBool(this SpanWriter reader, bool[] array)
+    public static void WriteArrayBool(this SpanWriter writer, bool[] array)
     {
         for (int i = 0; i < array.Length; i++)
         {
-            reader.WriteBool(array[i]);
+            writer.WriteBool(array[i]);
         }
     }
 
@@ -102,11 +102,11 @@ internal static class ArrayIntrinsics
         }
     }
 
-    public static void WriteArrayU16(this SpanWriter reader, ushort[] array)
+    public static void WriteArrayU16(this SpanWriter writer, ushort[] array)
     {
         for (int i = 0; i < array.Length; i++)
         {
-            reader.WriteUInt16LE(array[i]);
+            writer.WriteUInt16LE(array[i]);
         }
     }
     
@@ -119,11 +119,11 @@ internal static class ArrayIntrinsics
         }
     }
 
-    public static void WriteArrayI16(this SpanWriter reader, short[] array)
+    public static void WriteArrayI16(this SpanWriter writer, short[] array)
     {
         for (int i = 0; i < array.Length; i++)
         {
-            reader.WriteInt16LE(array[i]);
+            writer.WriteInt16LE(array[i]);
         }
     }
 
@@ -136,11 +136,11 @@ internal static class ArrayIntrinsics
         }
     }
 
-    public static void WriteArrayU32(this SpanWriter reader, uint[] array)
+    public static void WriteArrayU32(this SpanWriter writer, uint[] array)
     {
         for (int i = 0; i < array.Length; i++)
         {
-            reader.WriteUInt32LE(array[i]);
+            writer.WriteUInt32LE(array[i]);
         }
     }
     
@@ -153,11 +153,11 @@ internal static class ArrayIntrinsics
         }
     }
 
-    public static void WriteArrayI32(this SpanWriter reader, int[] array)
+    public static void WriteArrayI32(this SpanWriter writer, int[] array)
     {
         for (int i = 0; i < array.Length; i++)
         {
-            reader.WriteInt32LE(array[i]);
+            writer.WriteInt32LE(array[i]);
         }
     }
 
@@ -170,11 +170,11 @@ internal static class ArrayIntrinsics
         }
     }
 
-    public static void WriteArrayU64(this SpanWriter reader, ulong[] array)
+    public static void WriteArrayU64(this SpanWriter writer, ulong[] array)
     {
         for (int i = 0; i < array.Length; i++)
         {
-            reader.WriteUInt64LE(array[i]);
+            writer.WriteUInt64LE(array[i]);
         }
     }
 
@@ -187,11 +187,11 @@ internal static class ArrayIntrinsics
         }
     }
 
-    public static void WriteArrayI64(this SpanWriter reader, long[] array)
+    public static void WriteArrayI64(this SpanWriter writer, long[] array)
     {
         for (int i = 0; i < array.Length; i++)
         {
-            reader.WriteInt64LE(array[i]);
+            writer.WriteInt64LE(array[i]);
         }
     }
 
@@ -204,11 +204,11 @@ internal static class ArrayIntrinsics
         }
     }
 
-    public static void WriteArrayF32(this SpanWriter reader, float[] array)
+    public static void WriteArrayF32(this SpanWriter writer, float[] array)
     {
         for (int i = 0; i < array.Length; i++)
         {
-            reader.WriteSingleLE(array[i]);
+            writer.WriteSingleLE(array[i]);
         }
     }
 
@@ -221,11 +221,11 @@ internal static class ArrayIntrinsics
         }
     }
 
-    public static void WriteArrayF64(this SpanWriter reader, double[] array)
+    public static void WriteArrayF64(this SpanWriter writer, double[] array)
     {
         for (int i = 0; i < array.Length; i++)
         {
-            reader.WriteDoubleLE(array[i]);
+            writer.WriteDoubleLE(array[i]);
         }
     }
 
@@ -238,11 +238,11 @@ internal static class ArrayIntrinsics
         }
     }
 
-    public static void WriteArrayCString(this SpanWriter reader, string[] array)
+    public static void WriteArrayCString(this SpanWriter writer, string[] array)
     {
         for (int i = 0; i < array.Length; i++)
         {
-            reader.WriteCString(array[i]);
+            writer.WriteCString(array[i]);
         }
     }
     
@@ -255,11 +255,11 @@ internal static class ArrayIntrinsics
         }
     }
 
-    public static void WriteArrayWString(this SpanWriter reader, string[] array)
+    public static void WriteArrayWString(this SpanWriter writer, string[] array)
     {
         for (int i = 0; i < array.Length; i++)
         {
-            reader.WriteWString(array[i]);
+            writer.WriteWString(array[i]);
         }
     }
     
@@ -272,11 +272,11 @@ internal static class ArrayIntrinsics
         }
     }
 
-    public static void WriteArrayUUID(this SpanWriter reader, Guid[] array)
+    public static void WriteArrayUUID(this SpanWriter writer, Guid[] array)
     {
         for (int i = 0; i < array.Length; i++)
         {
-            reader.WriteGuidLE(array[i]);
+            writer.WriteGuidLE(array[i]);
         }
     }
 }
