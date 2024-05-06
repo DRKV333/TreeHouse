@@ -23,7 +23,7 @@ public enum CheckerErrorReason
     EnumTypeBadType
 }
 
-public record struct CheckerErrorSite(
+public readonly record struct CheckerErrorSite(
     object DocumentId,
     string SiteObject,
     string SiteDetail
@@ -62,7 +62,7 @@ public record class DocumentCheckerError(
 
 public class DocumentChecker
 {
-    private record struct VisitorParams(
+    private readonly record struct VisitorParams(
         CheckerErrorSite Site,
         Dictionary<string, FieldDefinitionInfo> Definitions
     );
