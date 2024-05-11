@@ -62,7 +62,7 @@ internal class SizeEstimateBuilder
     public string GetSizeEstimate()
     {
         ResolveOtherTypes();
-        return builder.GetSize().Expression;
+        return builder.GetSize().ToString();
     }
 
     private void ResolveOtherTypes()

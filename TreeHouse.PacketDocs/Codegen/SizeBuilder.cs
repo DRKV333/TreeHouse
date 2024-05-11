@@ -5,9 +5,11 @@ namespace TreeHouse.PacketDocs.Codegen;
 
 internal readonly record struct Size(
     int Constant,
-    string Expression
+    string? Expression
 ) {
-    public readonly bool IsConstant => Expression.Length == 0;
+    public readonly bool IsConstant => Expression == null;
+
+    public override string ToString() => Expression ?? Constant.ToString();
 }
 
 internal class SizeBuilder
@@ -25,17 +27,22 @@ internal class SizeBuilder
 
     public Size GetSize()
     {
-        StringBuilder builder = new();
-
-        if (SizeConstant > 0 || sizeExpressions.Count == 0)
+        if (sizeExpressions.Count == 0)
         {
-            builder.Append(SizeConstant);
-            if (sizeExpressions.Count > 0)
-                builder.Append(" + ");
+            return new Size(SizeConstant, null);
         }
+        else
+        {
+            StringBuilder builder = new();
 
-        builder.AppendJoin(" + ", sizeExpressions);
+            if (SizeConstant > 0)
+            {
+                builder.Append(SizeConstant);
+                builder.Append(" + ");
+            }
+            builder.AppendJoin(" + ", sizeExpressions);
 
-        return new Size(SizeConstant, builder.ToString());
+            return new Size(SizeConstant, builder.ToString());
+        }
     }
 }
