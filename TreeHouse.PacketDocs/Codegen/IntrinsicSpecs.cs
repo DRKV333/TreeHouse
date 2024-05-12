@@ -9,7 +9,10 @@ internal record class IntrinsicSpec(
     Func<string, string> Read,
     Func<string, string> Write,
     int Size,
-    Func<string, string>? EstimateSize = null
+    Func<string, string>? EstimateSize = null,
+    int SkipWriteSizeEstimate = -1,
+    string? SkipRead = null,
+    string? SkipWrite = null
 );
 
 internal record class IntrinsicArraySpec(
@@ -17,7 +20,10 @@ internal record class IntrinsicArraySpec(
     Func<string, string, string> Read,
     Func<string, string> Write,
     int ElementSize,
-    Func<string, string>? EstimateSize = null
+    Func<string, string>? EstimateSize = null,
+    int ElementSkipWriteSizeEstimate = -1,
+    Func<string, string>? SkipRead = null,
+    Func<string, string>? SkipWrite = null
 );
 
 internal static class IntrinsicSpecs
@@ -95,14 +101,20 @@ internal static class IntrinsicSpecs
             f => $"{f} = reader.ReadCString();",
             f => $"writer.WriteCString({f});",
             -1,
-            f => $"Intrinsics.EstimateCString({f})"
+            f => $"Intrinsics.EstimateCString({f})",
+            2,
+            "reader.SkipCString();",
+            "writer.SkipString();"
         )},
         { "wstring", new IntrinsicSpec(
             "string",
             f => $"{f} = reader.ReadCString();",
             f => $"writer.WriteCString({f});",
             -1,
-            f => $"Intrinsics.EstimateWString({f})"
+            f => $"Intrinsics.EstimateWString({f})",
+            2,
+            "reader.SkipWString();",
+            "writer.SkipString();"
         )},
         { "uuid", new IntrinsicSpec(
             "global::System.Guid",
@@ -185,14 +197,20 @@ internal static class IntrinsicSpecs
             (f, l) => $"reader.ReadArrayCString((int){l}, ref {f});",
             f => $"writer.WriteArrayCString({f});",
             -1,
-            f => $"ArrayIntrinsics.EstimateArrayCString({f})"
+            f => $"ArrayIntrinsics.EstimateArrayCString({f})",
+            2,
+            l => $"reader.SkipArrayCString({l});",
+            l => $"writer.SkipArrayString({l});"
         )},
         { "wstring", new IntrinsicArraySpec(
             "string[]",
             (f, l) => $"reader.ReadArrayWString((int){l}, ref {f});",
             f => $"writer.WriteArrayWString({f});",
             -1,
-            f => $"ArrayIntrinsics.EstimateArrayWString({f})"
+            f => $"ArrayIntrinsics.EstimateArrayWString({f})",
+            2,
+            l => $"reader.SkipArrayWString({l});",
+            l => $"writer.SkipArrayString({l});"
         )},
         { "uuid", new IntrinsicArraySpec(
             "global::System.Guid[]",

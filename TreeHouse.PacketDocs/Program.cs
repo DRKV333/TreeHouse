@@ -198,6 +198,12 @@ void CodegenHandler(DirectoryInfo defsDir, FileInfo output)
         joinedDocument.Structures.AddRange(document.Structures);
     }
 
+    StructurePreprocessor preprocessor = new();
+    foreach (var item in joinedDocument.Structures.Values.Concat(joinedDocument.Packets.Values))
+    {
+        preprocessor.Preprocess(item);
+    }
+
     File.WriteAllText(output.FullName, new CodegenTemplate(joinedDocument).Render());
 }
 

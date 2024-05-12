@@ -16,13 +16,6 @@ internal class StructureBuilder
 
     private readonly Dictionary<string, string> enumMemberBaseTypes = new();
 
-    public SizeEstimateBuilder SizeEstimateBuilder { get; }
-
-    public StructureBuilder(SizeResolver.SelfToken selfSize)
-    {
-        SizeEstimateBuilder = new SizeEstimateBuilder(selfSize);
-    }
-
     public string GetMembers() => membersBuilder.ToString();
     public string GetRead() => readBuilder.ToString();
     public string GetWrite() => writeBuilder.ToString();
@@ -98,13 +91,8 @@ internal class StructureBuilder
         {
             string structTypeName = ConvertTypeName(type[1..]);
             spec = IntrinsicSpecs.GetIntrinsicFromStructure(structTypeName);
-            SizeEstimateBuilder.AddContainedType(structTypeName, fieldName);
         }
-        else if (IntrinsicSpecs.TryGetInrinsic(type, out spec))
-        {
-            SizeEstimateBuilder.AddIntrinsic(spec, fieldName);
-        }
-        else
+        else if (!IntrinsicSpecs.TryGetInrinsic(type, out spec))
         {
             return;
         }
@@ -138,7 +126,6 @@ internal class StructureBuilder
 
         readBuilder.AppendLine(IntrinsicSpecs.ReadAndCast(spec, fieldName, typeName));
         writeBuilder.AppendLine(spec.Write(fieldNameCast));
-        SizeEstimateBuilder.AddIntrinsic(spec, fieldNameCast);
     }
 
     private void AppendArray(string fieldName, ArrayFieldType arrayType)
@@ -154,13 +141,8 @@ internal class StructureBuilder
         {
             string structTypeName = ConvertTypeName(arrayType.Type[1..]);
             arraySpec = IntrinsicSpecs.GetArrayFromStructure(structTypeName);
-            SizeEstimateBuilder.AddRefencedArrayType(structTypeName, fieldName);
         }
-        else if (IntrinsicSpecs.TryGetArrayInrinsic(arrayType.Type, out arraySpec))
-        {
-            SizeEstimateBuilder.AddIntrinsicArray(arraySpec, fieldName);
-        }
-        else
+        else if (!IntrinsicSpecs.TryGetArrayInrinsic(arrayType.Type, out arraySpec))
         {
             return;
         }

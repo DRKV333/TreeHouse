@@ -245,7 +245,15 @@ internal static class ArrayIntrinsics
             writer.WriteCString(array[i]);
         }
     }
-    
+
+    public static void SkipArrayCString(this SpanReader reader, int length)
+    {
+        for (int i = 0; i < length; i++)
+        {
+            reader.SkipCString();
+        }
+    }
+
     public static void ReadArrayWString(this SpanReader reader, int length, ref string[] array)
     {
         array = new string[length];
@@ -262,7 +270,17 @@ internal static class ArrayIntrinsics
             writer.WriteWString(array[i]);
         }
     }
-    
+
+    public static void SkipArrayWString(this SpanReader reader, int length)
+    {
+        for (int i = 0; i < length; i++)
+        {
+            reader.SkipWString();
+        }
+    }
+
+    public static void SkipArrayString(this SpanWriter writer, int length) => writer.WriteZeroes(sizeof(short) * length);
+
     public static void ReadArrayUUID(this SpanReader reader, int length, ref Guid[] array)
     {
         array = new Guid[length];

@@ -23,6 +23,12 @@ internal static class Intrinsics
 
     public static int EstimateCString(string str) => sizeof(short) + Encoding.ASCII.GetMaxByteCount(str.Length);
 
+    public static void SkipCString(this SpanReader reader)
+    {
+        int length = reader.ReadInt16LE();
+        reader.Skip(length);
+    }
+
     public static string ReadWString(this SpanReader reader)
     {
         int lenght = reader.ReadInt16LE() * 2;
@@ -37,4 +43,12 @@ internal static class Intrinsics
     }
 
     public static int EstimateWString(string str) => sizeof(short) + Encoding.Unicode.GetMaxByteCount(str.Length);
+
+    public static void SkipWString(this SpanReader reader)
+    {
+        int length = reader.ReadInt16LE() * 2;
+        reader.Skip(length);
+    }
+
+    public static void SkipString(this SpanWriter writer) => writer.WriteZeroes(sizeof(short));
 }

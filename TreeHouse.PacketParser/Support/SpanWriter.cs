@@ -60,16 +60,15 @@ public ref struct SpanWriter
         return sliced;
     }
 
-    public void WriteByte(byte b, int times = 1)
-    {
-        Span<byte> bytes = BufferNext(times);
-        for (int i = 0; i < times; i++)
-        {
-            bytes[i] = b;
-        }
-    }
+    public void WriteZeroes(int times) => BufferNext(times).Clear();
 
-    public void WriteSByte(sbyte b, int times = 1) => WriteByte((byte)b, times);
+    public void WriteByte(byte b) => BufferNext(1)[0] = b;
+
+    public void WriteByte(byte b, int times) => BufferNext(times).Fill(b);
+
+    public void WriteSByte(sbyte b) => WriteByte((byte)b);
+
+    public void WriteSByte(sbyte b, int times) => WriteByte((byte)b, times);
 
     private int WriteString(Encoding encoding, string str)
     {
