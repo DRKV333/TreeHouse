@@ -149,6 +149,12 @@ internal class StructureBuilder
             base.VisitPrimitive(field, index, type, param);
         }
 
+        protected override void VisitLimitedString(Field field, int index, LimitedStringFieldType type, object? param)
+        {
+            VisitPrimitive(field, index, new PrimitiveFieldType { Value = type.Name }, param);
+            base.VisitLimitedString(field, index, type, param);
+        }
+
         protected override void VisitEnum(Field field, int index, EnumFieldType type, object? param)
         {
             string? fieldName = ConvertFieldName(field.Name);
