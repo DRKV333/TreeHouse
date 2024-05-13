@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Text;
 using TreeHouse.Common;
@@ -19,6 +20,16 @@ internal class StructureBuilder
 
     private SizeBuilder? currentSkip = null;
 
+    private readonly StructureVisitor visitor;
+
+    public StructureBuilder()
+    {
+        visitor = new StructureVisitor()
+        {
+            Builder = this
+        };
+    }
+
     public string GetMembers() => membersBuilder.ToString();
     
     public string GetRead()
@@ -33,193 +44,198 @@ internal class StructureBuilder
         return writeBuilder.ToString();
     }
 
-    public static string ConvertTypeName(string type) => type.Capitalize();
+    [return: NotNullIfNotNull(nameof(type))]
+    public static string? ConvertTypeName(string? type) => type.Capitalize();
 
-    public static string ConvertFieldName(string field) => field.Capitalize();
+    [return: NotNullIfNotNull(nameof(field))]
+    public static string? ConvertFieldName(string? field) => field.Capitalize();
 
-    public void AppendFieldsList(FieldsList fields)
+    public void AppendFieldsList(FieldsList fields) => visitor.VisitFieldsList(fields, null);
+
+    public void AppendField(Field field) => visitor.VisitField(field);
+
+    private class StructureVisitor : FieldsListVisitor<object?>
     {
-        foreach (var item in fields.Fields)
+        public required StructureBuilder Builder { get; init; }
+
+        protected override void VisitBranch(BranchDetails branch, int index, object? param)
         {
-            if (item is Branch branch)
-                AppendBranch(branch.Details);
-            else if (item is Field field)
-                AppendField(field);
-        }
-    }
+            string fieldName = ConvertFieldName(branch.Field);
 
-    private void AppendBranch(BranchDetails branch)
-    {
-        string fieldName = ConvertFieldName(branch.Field);
+            string compareFrom;
+            if (Builder.enumMemberBaseTypes.TryGetValue(fieldName, out string? enumTypeName))
+                compareFrom = $"(({enumTypeName}){fieldName})";
+            else
+                compareFrom = fieldName;
 
-        string compareFrom;
-        if (enumMemberBaseTypes.TryGetValue(fieldName, out string? enumTypeName))
-            compareFrom = $"(({enumTypeName}){fieldName})";
-        else
-            compareFrom = fieldName;
+            string condition;
+            if (branch.TestEqual != null)
+                condition = $"{compareFrom} == {branch.TestEqual}";
+            else if (branch.TestFlag != null)
+                condition = $"({compareFrom} & {branch.TestFlag}) == {branch.TestFlag}";
+            else
+                condition = compareFrom;
 
-        string condition;
-        if (branch.TestEqual != null)
-            condition = $"{compareFrom} == {branch.TestEqual}";
-        else if (branch.TestFlag != null)
-            condition = $"({compareFrom} & {branch.TestFlag}) == {branch.TestFlag}";
-        else
-            condition = compareFrom;
+            Builder.AppendLineReadWrite($"if ({condition})");
+            Builder.AppendLineReadWrite("{");
 
-        AppendLineReadWrite($"if ({condition})");
-        AppendLineReadWrite("{");
+            if (branch.IsTrue != null)
+                VisitFieldsList(branch.IsTrue, param);
 
-        if (branch.IsTrue != null)
-            AppendFieldsList(branch.IsTrue);
+            Builder.AppendLineReadWrite("}");
+            Builder.AppendLineReadWrite("else");
+            Builder.AppendLineReadWrite("{");
 
-        AppendLineReadWrite("}");
-        AppendLineReadWrite("else");
-        AppendLineReadWrite("{");
+            if (branch.IsFalse != null)
+                VisitFieldsList(branch.IsFalse, param);
 
-        if (branch.IsFalse != null)
-            AppendFieldsList(branch.IsFalse);
-
-        AppendLineReadWrite("}");
-    }
-
-    public void AppendField(Field field)
-    {
-        string? fieldName = null;
-        if (!string.IsNullOrEmpty(field.Name))
-        {
-            fieldName = ConvertFieldName(field.Name);
-            FinishSkip();
+            Builder.AppendLineReadWrite("}");
         }
 
-        if (field.Type is PrimitiveFieldType primitive)
-            AppendPrimitive(fieldName, primitive.Value);
-        else if (field.Type is EnumFieldType enumType)
-            AppendEnum(fieldName, enumType);
-        else if (field.Type is ArrayFieldType arrayType)
-            AppendArray(fieldName, arrayType);
-    }
+        public void VisitField(Field field) => VisitField(field, 0, null);
 
-    private void AppendPrimitive(string? fieldName, string type)
-    {
-        IntrinsicSpec? spec;
-        if (type.StartsWith(':'))
+        protected override void VisitField(Field field, int index, object? param)
         {
-            string structTypeName = ConvertTypeName(type[1..]);
-            spec = IntrinsicSpecs.GetIntrinsicFromStructure(structTypeName);
-        }
-        else if (!IntrinsicSpecs.TryGetInrinsic(type, out spec))
-        {
-            return;
+            if (!string.IsNullOrEmpty(field.Name))
+                Builder.FinishSkip();
+
+            base.VisitField(field, index, param);
         }
 
-        if (fieldName == null)
+        protected override void VisitPrimitive(Field field, int index, PrimitiveFieldType type, object? param)
         {
-            if (spec.Size == -1)
+            string? fieldName = ConvertFieldName(field.Name);
+
+            IntrinsicSpec? spec;
+            if (type.Value.StartsWith(':'))
             {
-                FinishSkip();
-                if (spec.SkipWriteSizeEstimate == -1)
+                string structTypeName = ConvertTypeName(type.Value[1..]);
+                spec = IntrinsicSpecs.GetIntrinsicFromStructure(structTypeName);
+            }
+            else if (!IntrinsicSpecs.TryGetInrinsic(type.Value, out spec))
+            {
+                return;
+            }
+
+            if (fieldName == null)
+            {
+                if (spec.Size == -1)
                 {
-                    throw new InvalidOperationException($"Cant skip type {spec.CsType}");
+                    Builder.FinishSkip();
+                    if (spec.SkipWriteSizeEstimate == -1)
+                    {
+                        throw new InvalidOperationException($"Cant skip type {spec.CsType}");
+                    }
+                    else
+                    {
+                        Builder.readBuilder.AppendLine(spec.SkipRead);
+                        Builder.writeBuilder.AppendLine(spec.SkipWrite);
+                    }
                 }
                 else
                 {
-                    readBuilder.AppendLine(spec.SkipRead);
-                    writeBuilder.AppendLine(spec.SkipWrite);
+                    if (Builder.currentSkip == null)
+                        Builder.currentSkip = new SizeBuilder();
+                    Builder.currentSkip.AddConstant(spec.Size);
                 }
             }
             else
             {
-                if (currentSkip == null)
-                    currentSkip = new SizeBuilder();
-                currentSkip.AddConstant(spec.Size);
+                Builder.AppendMember(fieldName, spec.CsType);
+                Builder.readBuilder.AppendLine(spec.Read(fieldName));
+                Builder.writeBuilder.AppendLine(spec.Write(fieldName));
             }
-        }
-        else
-        {
-            AppendMember(fieldName, spec.CsType);
-            readBuilder.AppendLine(spec.Read(fieldName));
-            writeBuilder.AppendLine(spec.Write(fieldName));
-        }
-    }
 
-    private void AppendEnum(string? fieldName, EnumFieldType enumType)
-    {
-        if (fieldName == null)
-        {
-            AppendPrimitive(fieldName, enumType.Name);
-            return;
+            base.VisitPrimitive(field, index, type, param);
         }
 
-        if (!IntrinsicSpecs.TryGetInrinsic(enumType.Name, out IntrinsicSpec? spec))
-            return;
-
-        string typeName = ConvertTypeName($"{fieldName}Type");
-
-        AppendMember(fieldName, typeName);
-        enumMemberBaseTypes.Add(fieldName, spec.CsType);
-
-        membersBuilder.AppendLine($"public enum {typeName} : {spec.CsType}");
-        membersBuilder.AppendLine("{");
-
-        foreach (var item in enumType.Enum)
+        protected override void VisitEnum(Field field, int index, EnumFieldType type, object? param)
         {
-            membersBuilder.AppendLine($"    {ConvertFieldName(item.Value)} = {item.Key},");
-        }
+            string? fieldName = ConvertFieldName(field.Name);
 
-        membersBuilder.AppendLine("}");
-
-        string fieldNameCast = $"(({spec.CsType}){fieldName})";
-
-        readBuilder.AppendLine(IntrinsicSpecs.ReadAndCast(spec, fieldName, typeName));
-        writeBuilder.AppendLine(spec.Write(fieldNameCast));
-    }
-
-    private void AppendArray(string? fieldName, ArrayFieldType arrayType)
-    {
-        string len;
-        if (int.TryParse(arrayType.Len, out int intLen))
-            len = intLen.ToString(CultureInfo.InvariantCulture);
-        else
-            len = ConvertFieldName(arrayType.Len);
-
-        IntrinsicArraySpec? arraySpec;
-        if (arrayType.Type.StartsWith(':'))
-        {
-            string structTypeName = ConvertTypeName(arrayType.Type[1..]);
-            arraySpec = IntrinsicSpecs.GetArrayFromStructure(structTypeName);
-        }
-        else if (!IntrinsicSpecs.TryGetArrayInrinsic(arrayType.Type, out arraySpec))
-        {
-            return;
-        }
-
-        if (fieldName == null)
-        {
-            if (arraySpec.ElementSize == -1)
+            if (fieldName == null)
             {
-                FinishSkip();
-                if (arraySpec.ElementSkipWriteSizeEstimate == -1)
+                VisitPrimitive(field, index, new PrimitiveFieldType() { Value = type.Name }, param);
+                return;
+            }
+
+            if (!IntrinsicSpecs.TryGetInrinsic(type.Name, out IntrinsicSpec? spec))
+                return;
+
+            string typeName = ConvertTypeName($"{fieldName}Type");
+
+            Builder.AppendMember(fieldName, typeName);
+            Builder.enumMemberBaseTypes.Add(fieldName, spec.CsType);
+
+            Builder.membersBuilder.AppendLine($"public enum {typeName} : {spec.CsType}");
+            Builder.membersBuilder.AppendLine("{");
+
+            foreach (var item in type.Enum)
+            {
+                Builder.membersBuilder.AppendLine($"    {ConvertFieldName(item.Value)} = {item.Key},");
+            }
+
+            Builder.membersBuilder.AppendLine("}");
+
+            string fieldNameCast = $"(({spec.CsType}){fieldName})";
+
+            Builder.readBuilder.AppendLine(IntrinsicSpecs.ReadAndCast(spec, fieldName, typeName));
+            Builder.writeBuilder.AppendLine(spec.Write(fieldNameCast));
+
+            base.VisitEnum(field, index, type, param);
+        }
+
+        protected override void VisitArray(Field field, int index, ArrayFieldType type, object? param)
+        {
+            string? fieldName = ConvertFieldName(field.Name);
+
+            string len;
+            if (int.TryParse(type.Len, out int intLen))
+                len = intLen.ToString(CultureInfo.InvariantCulture);
+            else
+                len = ConvertFieldName(type.Len);
+
+            IntrinsicArraySpec? arraySpec;
+            if (type.Type.StartsWith(':'))
+            {
+                string structTypeName = ConvertTypeName(type.Type[1..]);
+                arraySpec = IntrinsicSpecs.GetArrayFromStructure(structTypeName);
+            }
+            else if (!IntrinsicSpecs.TryGetArrayInrinsic(type.Type, out arraySpec))
+            {
+                return;
+            }
+
+            if (fieldName == null)
+            {
+                if (arraySpec.ElementSize == -1)
                 {
-                    throw new InvalidOperationException($"Cant skip type {arraySpec.CsType}");
+                    Builder.FinishSkip();
+                    if (arraySpec.ElementSkipWriteSizeEstimate == -1)
+                    {
+                        throw new InvalidOperationException($"Cant skip type {arraySpec.CsType}");
+                    }
+                    else
+                    {
+                        Builder.readBuilder.AppendLine(arraySpec.SkipRead!(len));
+                        Builder.writeBuilder.AppendLine(arraySpec.SkipWrite!(len));
+                    }
                 }
                 else
                 {
-                    readBuilder.AppendLine(arraySpec.SkipRead!(len));
-                    writeBuilder.AppendLine(arraySpec.SkipWrite!(len));
+                    if (Builder.currentSkip == null)
+                        Builder.currentSkip = new SizeBuilder();
+                    Builder.currentSkip.AddExpression($"({len} * {arraySpec.ElementSize})");
                 }
             }
             else
             {
-                if (currentSkip == null)
-                    currentSkip = new SizeBuilder();
-                currentSkip.AddExpression($"({len} * {arraySpec.ElementSize})");
+                Builder.AppendMember(fieldName, arraySpec.CsType);
+                Builder.readBuilder.AppendLine(arraySpec.Read(fieldName, len));
+                Builder.writeBuilder.AppendLine(arraySpec.Write(fieldName));
             }
-        }
-        else
-        {
-            AppendMember(fieldName, arraySpec.CsType);
-            readBuilder.AppendLine(arraySpec.Read(fieldName, len));
-            writeBuilder.AppendLine(arraySpec.Write(fieldName));
+
+            base.VisitArray(field, index, type, param);
         }
     }
 
