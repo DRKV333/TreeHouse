@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
@@ -16,9 +17,21 @@ internal class StructureBuilder
 
     private readonly Dictionary<string, string> enumMemberBaseTypes = new();
 
+    private SizeBuilder? currentSkip = null;
+
     public string GetMembers() => membersBuilder.ToString();
-    public string GetRead() => readBuilder.ToString();
-    public string GetWrite() => writeBuilder.ToString();
+    
+    public string GetRead()
+    {
+        FinishSkip();
+        return readBuilder.ToString();
+    }
+
+    public string GetWrite()
+    {
+        FinishSkip();
+        return writeBuilder.ToString();
+    }
 
     public static string ConvertTypeName(string type) => type.Capitalize();
 
@@ -71,11 +84,13 @@ internal class StructureBuilder
 
     public void AppendField(Field field)
     {
-        if (string.IsNullOrEmpty(field.Name))
-            return;
+        string? fieldName = null;
+        if (!string.IsNullOrEmpty(field.Name))
+        {
+            fieldName = ConvertFieldName(field.Name);
+            FinishSkip();
+        }
 
-        string fieldName = ConvertFieldName(field.Name);
-        
         if (field.Type is PrimitiveFieldType primitive)
             AppendPrimitive(fieldName, primitive.Value);
         else if (field.Type is EnumFieldType enumType)
@@ -84,7 +99,7 @@ internal class StructureBuilder
             AppendArray(fieldName, arrayType);
     }
 
-    private void AppendPrimitive(string fieldName, string type)
+    private void AppendPrimitive(string? fieldName, string type)
     {
         IntrinsicSpec? spec;
         if (type.StartsWith(':'))
@@ -97,13 +112,44 @@ internal class StructureBuilder
             return;
         }
 
-        AppendMember(fieldName, spec.CsType);
-        readBuilder.AppendLine(spec.Read(fieldName));
-        writeBuilder.AppendLine(spec.Write(fieldName));
+        if (fieldName == null)
+        {
+            if (spec.Size == -1)
+            {
+                FinishSkip();
+                if (spec.SkipWriteSizeEstimate == -1)
+                {
+                    throw new InvalidOperationException($"Cant skip type {spec.CsType}");
+                }
+                else
+                {
+                    readBuilder.AppendLine(spec.SkipRead);
+                    writeBuilder.AppendLine(spec.SkipWrite);
+                }
+            }
+            else
+            {
+                if (currentSkip == null)
+                    currentSkip = new SizeBuilder();
+                currentSkip.AddConstant(spec.Size);
+            }
+        }
+        else
+        {
+            AppendMember(fieldName, spec.CsType);
+            readBuilder.AppendLine(spec.Read(fieldName));
+            writeBuilder.AppendLine(spec.Write(fieldName));
+        }
     }
 
-    private void AppendEnum(string fieldName, EnumFieldType enumType)
+    private void AppendEnum(string? fieldName, EnumFieldType enumType)
     {
+        if (fieldName == null)
+        {
+            AppendPrimitive(fieldName, enumType.Name);
+            return;
+        }
+
         if (!IntrinsicSpecs.TryGetInrinsic(enumType.Name, out IntrinsicSpec? spec))
             return;
 
@@ -128,7 +174,7 @@ internal class StructureBuilder
         writeBuilder.AppendLine(spec.Write(fieldNameCast));
     }
 
-    private void AppendArray(string fieldName, ArrayFieldType arrayType)
+    private void AppendArray(string? fieldName, ArrayFieldType arrayType)
     {
         string len;
         if (int.TryParse(arrayType.Len, out int intLen))
@@ -147,9 +193,34 @@ internal class StructureBuilder
             return;
         }
 
-        AppendMember(fieldName, arraySpec.CsType);
-        readBuilder.AppendLine(arraySpec.Read(fieldName, len));
-        writeBuilder.AppendLine(arraySpec.Write(fieldName));
+        if (fieldName == null)
+        {
+            if (arraySpec.ElementSize == -1)
+            {
+                FinishSkip();
+                if (arraySpec.ElementSkipWriteSizeEstimate == -1)
+                {
+                    throw new InvalidOperationException($"Cant skip type {arraySpec.CsType}");
+                }
+                else
+                {
+                    readBuilder.AppendLine(arraySpec.SkipRead!(len));
+                    writeBuilder.AppendLine(arraySpec.SkipWrite!(len));
+                }
+            }
+            else
+            {
+                if (currentSkip == null)
+                    currentSkip = new SizeBuilder();
+                currentSkip.AddExpression($"({len} * {arraySpec.ElementSize})");
+            }
+        }
+        else
+        {
+            AppendMember(fieldName, arraySpec.CsType);
+            readBuilder.AppendLine(arraySpec.Read(fieldName, len));
+            writeBuilder.AppendLine(arraySpec.Write(fieldName));
+        }
     }
 
     private void AppendMember(string fieldName, string fieldType)
@@ -162,5 +233,18 @@ internal class StructureBuilder
     {
         readBuilder.AppendLine(str);
         writeBuilder.AppendLine(str);
+    }
+
+    private void FinishSkip()
+    {
+        if (currentSkip != null)
+        {
+            Size skipSize = currentSkip.GetSize();
+
+            readBuilder.AppendLine($"reader.Skip((int)({skipSize.ToString()}));");
+            writeBuilder.AppendLine($"writer.WriteZeroes((int)({skipSize.ToString()}));");
+
+            currentSkip = null;
+        }
     }
 }

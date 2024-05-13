@@ -199,8 +199,8 @@ internal static class IntrinsicSpecs
             -1,
             f => $"ArrayIntrinsics.EstimateArrayCString({f})",
             2,
-            l => $"reader.SkipArrayCString({l});",
-            l => $"writer.SkipArrayString({l});"
+            l => $"reader.SkipArrayCString((int){l});",
+            l => $"writer.SkipArrayString((int){l});"
         )},
         { "wstring", new IntrinsicArraySpec(
             "string[]",
@@ -209,8 +209,8 @@ internal static class IntrinsicSpecs
             -1,
             f => $"ArrayIntrinsics.EstimateArrayWString({f})",
             2,
-            l => $"reader.SkipArrayWString({l});",
-            l => $"writer.SkipArrayString({l});"
+            l => $"reader.SkipArrayWString((int){l});",
+            l => $"writer.SkipArrayString((int){l});"
         )},
         { "uuid", new IntrinsicArraySpec(
             "global::System.Guid[]",
