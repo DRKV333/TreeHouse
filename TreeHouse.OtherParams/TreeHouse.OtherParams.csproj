@@ -9,8 +9,10 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.6" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="8.0.0" />
     <PackageReference Include="RazorBlade" Version="0.5.0" />
+    <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\TreeHouse.Common\TreeHouse.Common.csproj" />
+    <ProjectReference Include="..\TreeHouse.Common.CommandLine\TreeHouse.Common.CommandLine.csproj" />
   </ItemGroup>
 </Project>
