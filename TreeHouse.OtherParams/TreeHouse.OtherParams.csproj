@@ -5,22 +5,10 @@
     <nullable>enable</nullable>
   </PropertyGroup>
   <ItemGroup>
-    <None Remove="PumlTemplate.cshtml" />
-  </ItemGroup>
-  <ItemGroup>
-    <RazorBlade Remove="PumlTemplate.cshtml" />
-  </ItemGroup>
-  <ItemGroup>
-    <AdditionalFiles Include="PumlTemplate.cshtml">
-      <IsRazorBlade>True</IsRazorBlade>
-      <Namespace>$([MSBuild]::ValueOrDefault('$(RootNamespace).%(RelativeDir)', '').Replace('\', '.').Replace('/', '.').Trim('.'))</Namespace>
-    </AdditionalFiles>
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="7.0.11" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="7.0.11" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="7.0.0" />
-    <PackageReference Include="RazorBlade" Version="0.4.3" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.6" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.6" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="8.0.0" />
+    <PackageReference Include="RazorBlade" Version="0.5.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\TreeHouse.Common\TreeHouse.Common.csproj" />
