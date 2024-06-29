@@ -8,12 +8,12 @@ namespace TreeHouse.OtherParams;
 
 public class ParamDb : DbContext
 {
-    public DbSet<Class> Classes { get; set; }
-    public DbSet<Param> Params { get; set; }
-    public DbSet<ParamDeclaration> ParamDeclarations { get; set; }
-    public DbSet<Table> Tables { get; set; }
+    public DbSet<Class> Classes { get; set; } = null!;
+    public DbSet<Param> Params { get; set; } = null!;
+    public DbSet<ParamDeclaration> ParamDeclarations { get; set; } = null!;
+    public DbSet<Table> Tables { get; set; } = null!;
 
-    protected DbSet<Globals> GlobalsSet { get; set; }
+    protected DbSet<Globals> GlobalsSet { get; set; } = null!;
 
     public Task<Globals?> GetGlobalsAsync() => GlobalsSet.SingleOrDefaultAsync();
 
