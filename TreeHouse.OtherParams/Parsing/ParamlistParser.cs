@@ -205,8 +205,6 @@ public class ParamlistParser
 
     private void ParseParamDef(Match match)
     {
-        // TODO: What to do with over-definitions?
-
         if (lastClass == null || lastParamDecl == null || match.Groups["class"].Value != lastClass.Name || match.Groups["param"].Value != lastParamDeclName)
             throw new FormatException("Parameter definitions should follow their corresponding declaration");
 
@@ -255,6 +253,7 @@ public class ParamlistParser
 
         lastClass.DefinedParams.Add(lastParam);
 
+        lastParam.Overrides = lastParamDecl.Definition;
         lastParamDecl.Definition = lastParam;
         lastParamDecl = null;
     }

@@ -67,4 +67,9 @@ public class Param
 
     [InverseProperty(nameof(ParamDeclaration.Definition))]
     public ICollection<ParamDeclaration> Declarations { get; set; } = new List<ParamDeclaration>();
+
+    [ForeignKey(nameof(Overrides))]
+    public int? OverridesId { get; set; }
+
+    public Param? Overrides { get; set; }
 }
