@@ -1,0 +1,3 @@
+[*.cs]
+# Disable "Use primary constructor" until generated fields can be made readonly.
+dotnet_diagnostic.IDE0290.severity = none
