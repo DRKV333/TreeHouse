@@ -15,6 +15,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TreeHouse.PacketFormat.Test
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TreeHouse.PacketParser", "TreeHouse.PacketParser\TreeHouse.PacketParser.csproj", "{52FDE5DC-B31A-43A1-90A9-57340B712556}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TreeHouse.Common.CommandLine", "TreeHouse.Common.CommandLine\TreeHouse.Common.CommandLine.csproj", "{DEED2C9B-5337-41EC-8D0F-787545CEFDFD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -45,6 +47,10 @@ Global
 		{52FDE5DC-B31A-43A1-90A9-57340B712556}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{52FDE5DC-B31A-43A1-90A9-57340B712556}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{52FDE5DC-B31A-43A1-90A9-57340B712556}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DEED2C9B-5337-41EC-8D0F-787545CEFDFD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DEED2C9B-5337-41EC-8D0F-787545CEFDFD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DEED2C9B-5337-41EC-8D0F-787545CEFDFD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DEED2C9B-5337-41EC-8D0F-787545CEFDFD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

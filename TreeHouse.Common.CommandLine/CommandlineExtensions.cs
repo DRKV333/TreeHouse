@@ -5,9 +5,9 @@ using System.CommandLine.Invocation;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace TreeHouse.PacketDocs;
+namespace TreeHouse.Common.CommandLine;
 
-internal static class CommandlineExtensions
+public static class CommandlineExtensions
 {
     public static Command WithHandler(this Command command, Delegate handler)
     {

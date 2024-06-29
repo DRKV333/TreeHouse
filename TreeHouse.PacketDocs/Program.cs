@@ -11,7 +11,7 @@ using Json.Schema;
 using Markdig;
 using Markdig.Parsers;
 using TreeHouse.Common;
-using TreeHouse.PacketDocs;
+using TreeHouse.Common.CommandLine;
 using TreeHouse.PacketDocs.Lua;
 using TreeHouse.PacketDocs.Markdown;
 using TreeHouse.PacketDocs.Templates;

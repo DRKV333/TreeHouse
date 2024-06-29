@@ -13,6 +13,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\TreeHouse.PacketFormat\TreeHouse.PacketFormat.csproj" />
+    <ProjectReference Include="..\TreeHouse.Common.CommandLine\TreeHouse.Common.CommandLine.csproj" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Lua\nativeparam.yaml" LogicalName="nativeparam.yaml" />
