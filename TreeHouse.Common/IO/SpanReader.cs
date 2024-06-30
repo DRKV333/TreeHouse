@@ -2,7 +2,7 @@ using System;
 using System.Buffers.Binary;
 using System.Text;
 
-namespace TreeHouse.PacketParser.Support;
+namespace TreeHouse.Common.IO;
 
 public ref struct SpanReader
 {

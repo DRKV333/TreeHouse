@@ -1,3 +1,5 @@
+using TreeHouse.Common.IO;
+
 namespace TreeHouse.PacketParser.Support;
 
 public interface ISpanReadWrite

@@ -3,4 +3,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
   </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\TreeHouse.Common\TreeHouse.Common.csproj" />
+  </ItemGroup>
 </Project>
