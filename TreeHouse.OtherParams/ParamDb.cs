@@ -9,7 +9,7 @@ namespace TreeHouse.OtherParams;
 public class ParamDb : DbContext
 {
     public DbSet<Class> Classes { get; set; } = null!;
-    public DbSet<Param> Params { get; set; } = null!;
+    public DbSet<ParamDefinition> ParamDefinitions { get; set; } = null!;
     public DbSet<ParamDeclaration> ParamDeclarations { get; set; } = null!;
     public DbSet<Table> Tables { get; set; } = null!;
 

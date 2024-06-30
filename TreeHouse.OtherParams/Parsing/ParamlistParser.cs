@@ -46,7 +46,7 @@ public class ParamlistParser
     Class? lastClass = null;
     ParamDeclaration? lastParamDecl = null;
     string? lastParamDeclName = null;
-    Param? lastParam = null;
+    ParamDefinition? lastParamDef = null;
     int paramId = 1;
 
     bool haveParsed = false;
@@ -180,7 +180,7 @@ public class ParamlistParser
 
         string name = match.Groups["param"].Value;
 
-        Param? definition = null;
+        ParamDefinition? definition = null;
 
         Class? ownerClass = lastClass.Extends;
         while (ownerClass != null)
@@ -198,9 +198,9 @@ public class ParamlistParser
 
     private void ParseHelp(Match match)
     {
-        if (lastClass == null || lastParam == null || match.Groups["class"].Value != lastClass.Name || match.Groups["param"].Value != lastParam.Name)
+        if (lastClass == null || lastParamDef == null || match.Groups["class"].Value != lastClass.Name || match.Groups["param"].Value != lastParamDef.Name)
             throw new FormatException("Help lines should follow their corresponding parameter definition");
-        lastParam.Help = match.Groups["help"].Value;
+        lastParamDef.Help = match.Groups["help"].Value;
     }
 
     private void ParseParamDef(Match match)
@@ -208,7 +208,7 @@ public class ParamlistParser
         if (lastClass == null || lastParamDecl == null || match.Groups["class"].Value != lastClass.Name || match.Groups["param"].Value != lastParamDeclName)
             throw new FormatException("Parameter definitions should follow their corresponding declaration");
 
-        lastParam = new Param()
+        lastParamDef = new ParamDefinition()
         {
             Id = paramId++,
             Name = match.Groups["param"].Value,
@@ -222,39 +222,39 @@ public class ParamlistParser
 
         string? priority = match.Groups["priority"].ValueIfSuccess();
         if (priority != null)
-            lastParam.Priority = float.Parse(priority);
+            lastParamDef.Priority = float.Parse(priority);
 
         string? tg = match.Groups["tg"].ValueIfSuccess();
         if (tg != null)
-            lastParam.Tg = float.Parse(tg);
+            lastParamDef.Tg = float.Parse(tg);
 
         foreach (string flag in match.Groups["flag"].Captures.Select(x => x.Value))
         {
             switch (flag)
             {
-                case "persistent": lastParam.Persistent = true; break;
-                case "content": lastParam.Content = true; break;
-                case "perInstanceSetting": lastParam.PerInstanceSetting = true; break;
-                case "nodeOwn": lastParam.NodeOwn = true; break;
-                case "deprecated": lastParam.Deprecated = true; break;
-                case "serverOwn": lastParam.ServerOwn = true; break;
-                case "excludeFromClient": lastParam.ExcludeFromClient = true; break;
-                case "dupeSetOk": lastParam.DupeSetOk = true; break;
-                case "clientUnknown": lastParam.ClientUnknown = true; break;
-                case "metric": lastParam.Metric = true; break;
-                case "clientOwn": lastParam.ClientUnknown = true; break;
-                case "equipSlot": lastParam.EquipSlot = true; break;
-                case "clientPrivileged": lastParam.ClientPrivileged = true; break;
-                case "uts": lastParam.Uts = true; break;
-                case "clientInit": lastParam.ClientInit = true; break;
+                case "persistent": lastParamDef.Persistent = true; break;
+                case "content": lastParamDef.Content = true; break;
+                case "perInstanceSetting": lastParamDef.PerInstanceSetting = true; break;
+                case "nodeOwn": lastParamDef.NodeOwn = true; break;
+                case "deprecated": lastParamDef.Deprecated = true; break;
+                case "serverOwn": lastParamDef.ServerOwn = true; break;
+                case "excludeFromClient": lastParamDef.ExcludeFromClient = true; break;
+                case "dupeSetOk": lastParamDef.DupeSetOk = true; break;
+                case "clientUnknown": lastParamDef.ClientUnknown = true; break;
+                case "metric": lastParamDef.Metric = true; break;
+                case "clientOwn": lastParamDef.ClientUnknown = true; break;
+                case "equipSlot": lastParamDef.EquipSlot = true; break;
+                case "clientPrivileged": lastParamDef.ClientPrivileged = true; break;
+                case "uts": lastParamDef.Uts = true; break;
+                case "clientInit": lastParamDef.ClientInit = true; break;
                 default: throw new FormatException("Unknown parameter flag: " + flag);
             }
         }
 
-        lastClass.DefinedParams.Add(lastParam);
+        lastClass.DefinedParams.Add(lastParamDef);
 
-        lastParam.Overrides = lastParamDecl.Definition;
-        lastParamDecl.Definition = lastParam;
+        lastParamDef.Overrides = lastParamDecl.Definition;
+        lastParamDecl.Definition = lastParamDef;
         lastParamDecl = null;
     }
 }

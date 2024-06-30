@@ -13,7 +13,7 @@ hide empty members
 {
     @:class @c.Name
     @:{
-        @foreach (Param p in c.DefinedParams)
+        @foreach (ParamDefinition p in c.DefinedParams)
         {
             @:+ @p.Name: @p.Type
         }

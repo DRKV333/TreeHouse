@@ -27,8 +27,8 @@ public class Class
 
     public string? Icon { get; set; }
 
-    [InverseProperty(nameof(Param.DefinedIn))]
-    public ICollection<Param> DefinedParams { get; set; } = new List<Param>();
+    [InverseProperty(nameof(ParamDefinition.DefinedIn))]
+    public ICollection<ParamDefinition> DefinedParams { get; set; } = new List<ParamDefinition>();
 
     [InverseProperty(nameof(ParamDeclaration.Class))]
     public ICollection<ParamDeclaration> DeclaredParams { get; set; } = new List<ParamDeclaration>();

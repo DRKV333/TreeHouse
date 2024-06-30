@@ -17,6 +17,6 @@ public class ParamDeclaration
     [ForeignKey(nameof(Definition))]
     public int DefinitionId { get; set; }
 
-    [InverseProperty(nameof(Param.Declarations))]
-    public required Param Definition { get; set; }
+    [InverseProperty(nameof(ParamDefinition.Declarations))]
+    public required ParamDefinition Definition { get; set; }
 }

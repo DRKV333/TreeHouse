@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TreeHouse.OtherParams.Model;
 
-public class Param
+public class ParamDefinition
 {
     [Key]
     public int Id { get; set; }
@@ -71,5 +71,5 @@ public class Param
     [ForeignKey(nameof(Overrides))]
     public int? OverridesId { get; set; }
 
-    public Param? Overrides { get; set; }
+    public ParamDefinition? Overrides { get; set; }
 }
