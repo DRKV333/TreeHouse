@@ -32,6 +32,7 @@ public class ParamlistParser
 
     private readonly Dictionary<string, Table> tables = new();
     private readonly Dictionary<string, Class> classes = new();
+    private readonly Dictionary<string, ParamTypeName> types = new();
 
     private int dataVerValue = 0;
 
@@ -208,12 +209,22 @@ public class ParamlistParser
         if (lastClass == null || lastParamDecl == null || match.Groups["class"].Value != lastClass.Name || match.Groups["param"].Value != lastParamDeclName)
             throw new FormatException("Parameter definitions should follow their corresponding declaration");
 
+        ParamTypeName typeName = types.TryGetOrAdd(match.Groups["type"].Value, type =>
+        {
+            ParamType id = ParamTypeUtils.FromString(type);
+            return new ParamTypeName()
+            {
+                Id = id,
+                Name = ParamTypeUtils.ToCanonicalString(id)
+            };
+        });
+
         lastParamDef = new ParamDefinition()
         {
             Id = paramId++,
             Name = match.Groups["param"].Value,
             DefinedIn = lastClass,
-            Type = match.Groups["type"].Value,
+            Type = typeName,
             Default = match.Groups["default"].ValueIfSuccess()?.Trim('\"'),
             EditType = match.Groups["editType"].ValueIfSuccess(),
             EngineBindingName = match.Groups["engineBindingName"].ValueIfSuccess(),

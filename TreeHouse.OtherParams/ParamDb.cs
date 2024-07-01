@@ -11,6 +11,7 @@ public class ParamDb : DbContext
     public DbSet<Class> Classes { get; set; } = null!;
     public DbSet<ParamDefinition> ParamDefinitions { get; set; } = null!;
     public DbSet<ParamDeclaration> ParamDeclarations { get; set; } = null!;
+    public DbSet<ParamTypeName> ParamTypeNames { get; set; } = null!;
     public DbSet<Table> Tables { get; set; } = null!;
 
     protected DbSet<Globals> GlobalsSet { get; set; } = null!;

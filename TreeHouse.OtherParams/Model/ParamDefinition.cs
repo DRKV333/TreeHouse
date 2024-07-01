@@ -11,7 +11,11 @@ public class ParamDefinition
 
     public required string Name { get; set; }
 
-    public required string Type { get; set; }
+    [ForeignKey(nameof(Type))]
+    public ParamType TypeId { get; set; }
+
+    [InverseProperty(nameof(ParamTypeName.Definitions))]
+    public required ParamTypeName Type { get; set; }
 
     public string? Default { get; set; }
 
