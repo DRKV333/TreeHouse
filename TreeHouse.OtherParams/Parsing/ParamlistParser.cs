@@ -102,7 +102,7 @@ public class ParamlistParser
         foreach (var item in classes.Values)
         {
             if (item.ContentTableBinding == null)
-                throw new FormatException($"Class {item.Name} is missing it's ContentTableBinding attribute");
+                throw new FormatException($"Class {item.Name} is missing its ContentTableBinding attribute");
 
             foreach (var param in item.DeclaredParams)
             {
