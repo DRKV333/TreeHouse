@@ -48,6 +48,8 @@ public ref struct SpanWriter
     public Span<byte> Buffer { get; }
     public int Position { get; set; } = 0;
 
+    public readonly bool EndOfBuffer => Position >= Buffer.Length;
+
     public SpanWriter(Span<byte> buffer)
     {
         Buffer = buffer;

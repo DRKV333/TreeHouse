@@ -9,6 +9,8 @@ public ref struct SpanReader
     public ReadOnlySpan<byte> Buffer { get; }
     public int Position { get; set; } = 0;
 
+    public readonly bool EndOfBuffer => Position >= Buffer.Length;
+
     public SpanReader(ReadOnlySpan<byte> buffer)
     {
         Buffer = buffer;
