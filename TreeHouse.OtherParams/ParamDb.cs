@@ -1,5 +1,4 @@
 ﻿using System.Threading.Tasks;
-using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using TreeHouse.OtherParams.Model;
@@ -38,14 +37,8 @@ public class ParamDb : DbContext
 
     public static ParamDb Open(string path, bool write = false, bool log = false)
     {
-        string connString = new SqliteConnectionStringBuilder()
-        {
-            DataSource = path,
-            Mode = write ? SqliteOpenMode.ReadWriteCreate : SqliteOpenMode.ReadOnly
-        }.ConnectionString;
-
         DbContextOptionsBuilder<ParamDb> optBuilder = new();
-        optBuilder.UseSqlite(connString);
+        optBuilder.UseSqlite(SqliteUtils.ConnectionString(path, write));
             
         if (log)
             optBuilder.UseLoggerFactory(LoggerFactory.Create(c => c.AddConsole())).EnableSensitiveDataLogging();
