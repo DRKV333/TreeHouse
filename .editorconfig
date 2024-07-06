@@ -1,3 +1,6 @@
 [*.cs]
 # Disable "Use primary constructor" until generated fields can be made readonly.
 dotnet_diagnostic.IDE0290.severity = none
+
+# Disable "Collection initialization can be simplified", because it flags too many things that are not really collections.
+dotnet_diagnostic.IDE0028.severity = none
