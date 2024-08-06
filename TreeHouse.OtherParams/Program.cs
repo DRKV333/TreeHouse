@@ -1,8 +1,8 @@
 ﻿using System.CommandLine;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Data.Sqlite;
+using Microsoft.EntityFrameworkCore;
 using TreeHouse.Common.CommandLine;
 using TreeHouse.OtherParams;
 using TreeHouse.OtherParams.JsonConverter;
@@ -58,7 +58,7 @@ async Task JsonConvertHandler(FileInfo paramDb, FileInfo contentDb)
     ParamSetJsonConverter converter = await ParamSetJsonConverter.CreateInstance(db);
     ContentDbJsonConverter dbConverter = new(converter);
 
-    foreach (Table table in db.Tables.ToList())
+    foreach (Table table in await db.Tables.ToListAsync())
     {
         dbConverter.ReadParamSets(conn, table);
     }
