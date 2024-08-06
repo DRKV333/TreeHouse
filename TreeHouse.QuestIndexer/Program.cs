@@ -57,6 +57,7 @@ static async Task IndexQuests(string elasticUrl, FileInfo source)
     {
         Console.WriteLine("Could not create index ol-quest.");
         Console.WriteLine(response);
+        return;
     }
 
     using SqliteConnection connection = new(new SqliteConnectionStringBuilder()
@@ -105,6 +106,7 @@ static async Task IndexQuests(string elasticUrl, FileInfo source)
     {
         Console.WriteLine("Failed to index quests.");
         Console.WriteLine(indexRespose);
+        return;
     }
 
     await client.Indices.RefreshAsync<Quest>();
@@ -136,6 +138,7 @@ static async Task IndexDialogs(string elasticUrl, FileInfo source)
     {
         Console.WriteLine("Could not create index ol-dialog.");
         Console.WriteLine(response);
+        return;
     }
 
     using SqliteConnection connection = new(new SqliteConnectionStringBuilder()
@@ -166,6 +169,7 @@ static async Task IndexDialogs(string elasticUrl, FileInfo source)
     {
         Console.WriteLine("Failed to index dialogs.");
         Console.WriteLine(indexRespose);
+        return;
     }
 
     await client.Indices.RefreshAsync<Dialog>();
