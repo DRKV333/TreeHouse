@@ -118,7 +118,7 @@ public class ParamSetJsonConverter
             ParamType typeId = (ParamType)reader.ReadByte();
 
             if (!paramsById.TryGetValue(paramId, out ParamDeclaration? decl))
-                throw new ParamParsingException(i, paramId, typeId, reader.Position, $"Unknown ParamId");
+                throw new ParamParsingException(i, paramId, typeId, reader.Position, "Unknown ParamId");
 
             if (classId != null && decl.ClassId != classId)
                 throw new ParamParsingException(i, paramId, typeId, reader.Position, $"ParamSet of class {classId} contains param defined for class {decl.ClassId}");
@@ -127,7 +127,7 @@ public class ParamSetJsonConverter
                 throw new ParamParsingException(i, paramId, typeId, reader.Position, $"Expected type was {decl.Definition.TypeId}");
 
             if (!JsonReaders.TryGetValue(typeId, out JsonReader? jsonReader))
-                throw new ParamParsingException(i, paramId, typeId, reader.Position, $"Don't know how to read this type");
+                throw new ParamParsingException(i, paramId, typeId, reader.Position, "Don't know how to read this type");
 
             obj[decl.Definition.Name] = jsonReader(ref reader);
         }
