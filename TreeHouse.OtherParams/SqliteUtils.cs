@@ -8,7 +8,6 @@ public static class SqliteUtils
     {
         DataSource = path,
         Mode = write ? SqliteOpenMode.ReadWriteCreate : SqliteOpenMode.ReadOnly,
-        
     }.ConnectionString;
 
     public static SqliteConnection Open(string path, bool write = false)
