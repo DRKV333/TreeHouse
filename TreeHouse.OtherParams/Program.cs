@@ -1,4 +1,5 @@
-﻿using System.CommandLine;
+﻿using System;
+using System.CommandLine;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.Data.Sqlite;
@@ -24,7 +25,8 @@ await new RootCommand()
     new Command("json-convert")
     {
         new Option<FileInfo>(new string[] { "--param-db", "-d" }).ExistingOnly().Required(),
-        new Option<FileInfo>(new string[] { "--content-db", "-c" }).ExistingOnly().Required(),
+        new Option<FileInfo>(new string[] { "--content-db", "-c" }).ExistingOnly(),
+        new Option<FileInfo>(new string[] { "--instance-db", "-i" }).ExistingOnly(),
         new Option<bool>("--write-jsonb"),
         new Option<bool>("--write-unformatted"),
         new Option<bool>("--no-write-json")
@@ -53,23 +55,58 @@ async Task PrintHandler(FileInfo paramDb, FileInfo output)
     await template.RenderAsync(writer);
 }
 
-async Task JsonConvertHandler(FileInfo paramDb, FileInfo contentDb, bool writeJsonb, bool writeUnformatted, bool noWriteJson)
+async Task JsonConvertHandler(FileInfo paramDb, FileInfo? contentDb, FileInfo? instanceDb, bool writeJsonb, bool writeUnformatted, bool noWriteJson)
 {
-    using SqliteConnection conn = SqliteUtils.Open(contentDb.FullName, write: true);
-    using ParamDb db = ParamDb.Open(paramDb.FullName);
-
-    ParamSetJsonConverter converter = await ParamSetJsonConverter.CreateInstance(db);
-    ContentDbJsonConverter dbConverter = new(converter);
-
-    foreach (Table table in await db.Tables.ToListAsync())
+    if (contentDb == null && instanceDb == null)
     {
-        dbConverter.ReadParamSets(conn, table);
+        Console.WriteLine("Neither content, nor instance db was given, nothing to do.");
+        return;
     }
 
-    dbConverter.WriteParamSetsJson(
-        connection: conn,
-        writeJson: !noWriteJson,
-        formatJson: !writeUnformatted,
-        writeJsonb: writeJsonb
-    );
+    using ParamDb db = ParamDb.Open(paramDb.FullName);
+    ParamSetJsonConverter converter = await ParamSetJsonConverter.CreateInstance(db);
+
+    if (contentDb != null)
+    {
+        using SqliteConnection connection = SqliteUtils.Open(contentDb.FullName, write: true);
+        ContentDbJsonConverter dbConverter = new(converter);
+
+        Console.WriteLine("Reading content db...");
+
+        foreach (Table table in await db.Tables.ToListAsync())
+        {
+            Console.WriteLine($"Reading table {table.Name}...");
+            dbConverter.ReadParamSets(connection, table);
+        }
+
+        Console.WriteLine("Writing json to content db...");
+
+        dbConverter.WriteParamSetsJson(
+            connection: connection,
+            writeJson: !noWriteJson,
+            formatJson: !writeUnformatted,
+            writeJsonb: writeJsonb
+        );
+    }
+
+    if (instanceDb != null)
+    {
+        using SqliteConnection connection = SqliteUtils.Open(instanceDb.FullName, write: true);
+        InstanceDbJsonConverter dbConverter = new(converter);
+
+        Console.WriteLine("Reading instance db...");
+
+        dbConverter.ReadParamSets(connection);
+
+        Console.WriteLine("Writing json to instance db...");
+
+        dbConverter.WriteParamSetsJson(
+            connection: connection,
+            writeJson: !noWriteJson,
+            formatJson: !writeUnformatted,
+            writeJsonb: writeJsonb
+        );
+    }
+
+    Console.WriteLine("Done.");
 }

@@ -18,27 +18,38 @@ public abstract class DbJsonConverterBase
     private readonly string keyColumn;
     private readonly string dataColumn;
     private readonly string? classIdColumn;
+    private readonly string? extraColumn;
 
     private readonly Dictionary<string, Dictionary<Guid, JsonObject>> paramSetsJson = new();
 
     private readonly byte[] commonBlobBuffer = new byte[100 * 2^10];
 
-    protected DbJsonConverterBase(ParamSetJsonConverter converter, string keyColumn, string dataColumn, string? classIdColumn)
+    protected DbJsonConverterBase(ParamSetJsonConverter converter, string keyColumn, string dataColumn, string? classIdColumn, string? extraColumn = null)
     {
         this.converter = converter;
         this.keyColumn = keyColumn;
         this.dataColumn = dataColumn;
         this.classIdColumn = classIdColumn;
+        this.extraColumn = extraColumn;
     }
 
     protected void ReadParamSetsForTable(SqliteConnection connection, string table)
     {
-        using SqliteCommand command = connection.CreateCommand();
+        int extraOrd = 2;
 
+        StringBuilder commandBuilder = new();
+        commandBuilder.Append($"SELECT {keyColumn}, {dataColumn}");
         if (classIdColumn != null)
-            command.CommandText = $"SELECT {keyColumn}, {dataColumn}, {classIdColumn} FROM {table}";
-        else
-            command.CommandText = $"SELECT {keyColumn}, {dataColumn} FROM {table}";
+        {
+            commandBuilder.Append($", {classIdColumn}");
+            extraOrd = 3;
+        }
+        if (extraColumn != null)
+            commandBuilder.Append($", {extraColumn}");
+        commandBuilder.Append($" FROM {table}");
+
+        using SqliteCommand command = connection.CreateCommand();
+        command.CommandText = commandBuilder.ToString();
 
         using SqliteDataReader reader = command.ExecuteReader();
 
@@ -50,9 +61,10 @@ public abstract class DbJsonConverterBase
             {
                 key = Guid.Parse(reader.GetString(0));
                 int? classId = classIdColumn != null ? reader.GetInt32(2) : null;
+                string? extra = extraColumn != null ? reader.GetString(extraOrd) : null;
 
                 using Stream dataBlob = reader.GetStream(1);
-                ReadFromBlob(table, key, dataBlob, classId);
+                ReadFromBlob(table, key, dataBlob, classId, extra);
             }
             catch (Exception e)
             {
@@ -61,11 +73,11 @@ public abstract class DbJsonConverterBase
         }
     }
 
-    protected virtual JsonObject GetDefaultJson(string table, Guid key, int? classId) => new JsonObject();
+    protected virtual JsonObject GetDefaultJson(string table, Guid key, int? classId, string? extra) => new JsonObject();
 
-    private void ReadFromBlob(string table, Guid key, Stream blob, int? classId)
+    private void ReadFromBlob(string table, Guid key, Stream blob, int? classId, string? extra)
     {
-        JsonObject json = GetDefaultJson(table, key, classId);
+        JsonObject json = GetDefaultJson(table, key, classId, extra);
 
         byte[] blobBuffer = commonBlobBuffer;
 
