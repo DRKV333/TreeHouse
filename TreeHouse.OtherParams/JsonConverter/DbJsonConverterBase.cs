@@ -44,7 +44,7 @@ public abstract class DbJsonConverterBase
 
         while (reader.Read())
         {
-            Guid key = new();
+            Guid key = Guid.Empty;
 
             try
             {
