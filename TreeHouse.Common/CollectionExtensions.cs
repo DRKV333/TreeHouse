@@ -32,6 +32,7 @@ public static class CollectionExtensions
         return value;
     }
 
+    // TODO: Use IEnumerable.Index after .NET 9 update.
     public static IEnumerable<(T item, int index)> WithIndex<T>(this IEnumerable<T> col) => col.Select((x, i) => (x, i));
 
     public static IEnumerable<T> EnumerateBackwards<T>(this IReadOnlyList<T> list)
@@ -42,7 +43,7 @@ public static class CollectionExtensions
         }
     }
 
-    public static void AddRange<T>(this IList<T> list, IEnumerable<T> items)
+    public static void AddRange<T>(this ICollection<T> list, IEnumerable<T> items)
     {
         foreach (T item in items)
         {
