@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Microsoft.Data.Sqlite;
@@ -81,18 +82,38 @@ public abstract class DbJsonConverterBase
         tableJsons[key] = json;
     }
 
-    public void WriteParamSetsJson(SqliteConnection connection)
+    public void WriteParamSetsJson(SqliteConnection connection, bool writeJson = true, bool formatJson = true, bool writeJsonb = false)
     {
+        if (!writeJson && !writeJsonb)
+            return;
+
+        if (!writeJson)
+            formatJson = false;
+
         using SqliteTransaction transaction = connection.BeginTransaction();
 
         foreach (var tableItem in paramSetsJson)
         {
             string table = tableItem.Key;
 
-            SqliteUtils.AddColumnIfNotExists(connection, table, "TEXT", "dataJSON");
+            if (writeJson)
+                SqliteUtils.AddColumnIfNotExists(connection, table, "TEXT", "dataJSON");
+
+            if (writeJsonb)
+                SqliteUtils.AddColumnIfNotExists(connection, table, "BLOB", "dataJSONB");
+
+            StringBuilder commandBuilder = new();
+            commandBuilder.Append($"UPDATE {table} SET ");
+            if (writeJson)
+                commandBuilder.Append("dataJSON = $json ");
+            if (writeJson && writeJsonb)
+                commandBuilder.Append(", ");
+            if (writeJsonb)
+                commandBuilder.Append("dataJSONB = jsonb($json) ");
+            commandBuilder.Append($"WHERE {keyColumn} = $key");
 
             using SqliteCommand updateCommand = connection.CreateCommand();
-            updateCommand.CommandText = $"UPDATE {table} SET dataJSON = $json WHERE {keyColumn} = $key";
+            updateCommand.CommandText = commandBuilder.ToString();
             updateCommand.Parameters.Add("$key", SqliteType.Text);
             updateCommand.Parameters.Add("$json", SqliteType.Text);
 
@@ -103,7 +124,7 @@ public abstract class DbJsonConverterBase
                 updateCommand.Parameters["$json"].Value = rowItem.Value.ToJsonString(
                     new JsonSerializerOptions()
                     {
-                        WriteIndented = true
+                        WriteIndented = formatJson
                     }
                 );
 

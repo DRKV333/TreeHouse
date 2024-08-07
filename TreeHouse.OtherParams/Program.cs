@@ -24,7 +24,10 @@ await new RootCommand()
     new Command("json-convert")
     {
         new Option<FileInfo>(new string[] { "--param-db", "-d" }).ExistingOnly().Required(),
-        new Option<FileInfo>(new string[] { "--content-db", "-c" }).ExistingOnly().Required()
+        new Option<FileInfo>(new string[] { "--content-db", "-c" }).ExistingOnly().Required(),
+        new Option<bool>("--write-jsonb"),
+        new Option<bool>("--write-unformatted"),
+        new Option<bool>("--no-write-json")
     }.WithHandler(JsonConvertHandler)
 }
 .InvokeAsync(args);
@@ -50,7 +53,7 @@ async Task PrintHandler(FileInfo paramDb, FileInfo output)
     await template.RenderAsync(writer);
 }
 
-async Task JsonConvertHandler(FileInfo paramDb, FileInfo contentDb)
+async Task JsonConvertHandler(FileInfo paramDb, FileInfo contentDb, bool writeJsonb, bool writeUnformatted, bool noWriteJson)
 {
     using SqliteConnection conn = SqliteUtils.Open(contentDb.FullName, write: true);
     using ParamDb db = ParamDb.Open(paramDb.FullName);
@@ -63,5 +66,10 @@ async Task JsonConvertHandler(FileInfo paramDb, FileInfo contentDb)
         dbConverter.ReadParamSets(conn, table);
     }
 
-    dbConverter.WriteParamSetsJson(conn);
+    dbConverter.WriteParamSetsJson(
+        connection: conn,
+        writeJson: !noWriteJson,
+        formatJson: !writeUnformatted,
+        writeJsonb: writeJsonb
+    );
 }
