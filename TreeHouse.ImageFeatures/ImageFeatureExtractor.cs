@@ -122,7 +122,7 @@ public class ImageFeatureExtractor : IDisposable
             targetWidth = (int)MathF.Round(image.Width * InputDim / (float)image.Height);
             targetHeight = InputDim;
 
-            cropStartX = targetWidth - InputDim / 2;
+            cropStartX = (targetWidth - InputDim) / 2;
             cropStartY = 0;
         }
         else
@@ -131,7 +131,7 @@ public class ImageFeatureExtractor : IDisposable
             targetHeight = (int)MathF.Round(image.Height * InputDim / (float)image.Width);
 
             cropStartX = 0;
-            cropStartY = targetHeight - InputDim / 2;
+            cropStartY = (targetHeight - InputDim) / 2;
         }
 
         image.Mutate(x => x
