@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <Content Include="ModelMaker/resnet_features.onnx" CopyToOutputDirectory="PreserveNewest" Link="resnet_features.onnx" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.ML.OnnxRuntime.Managed" Version="1.19.2" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.5" />
+  </ItemGroup>
+</Project>
