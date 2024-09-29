@@ -19,19 +19,19 @@ await new RootCommand()
 {
     new Command("index-quests")
     {
-        new Option<FileInfo>(new string[] { "-s", "--source" }).ExistingOnly().Required()
+        new Option<FileInfo>(["-s", "--source"]).ExistingOnly().Required()
     }.WithHandler(IndexQuests),
     new Command("delete-quests").WithHandler(DeleteQuests),
 
     new Command("index-dialogs")
     {
-        new Option<FileInfo>(new string[] { "-s", "--source" }).ExistingOnly().Required()
+        new Option<FileInfo>(["-s", "--source"]).ExistingOnly().Required()
     }.WithHandler(IndexDialogs),
     new Command("delete-dialogs").WithHandler(DeleteDialogs),
 
     new Command("index-images")
     {
-        new Option<DirectoryInfo>(new string[] { "-s", "--source" }).ExistingOnly().Required()
+        new Option<DirectoryInfo>(["-s", "--source"]).ExistingOnly().Required()
     }.WithHandler(IndexImages),
     new Command("delete-images").WithHandler(DeleteImages),
     new Command("search-images")
@@ -40,7 +40,7 @@ await new RootCommand()
         new Argument<FileInfo>("image").ExistingOnly().Arity(ArgumentArity.ExactlyOne)
     }.WithHandler(SearchImages)
 }
-.WithGlobalOption(new Option<string>(new string[] { "-e", "--elastic-url" }).Required())
+.WithGlobalOption(new Option<string>(["-e", "--elastic-url"]).Required())
 .InvokeAsync(args);
 
 static ElasticsearchClient CreateClient(string elasticUrl)

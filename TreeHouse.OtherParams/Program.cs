@@ -14,19 +14,19 @@ await new RootCommand()
 {
     new Command("parse")
     {
-        new Option<FileInfo>(new string[] { "--param-db", "-d" }).Required(),
-        new Option<FileInfo>(new string[] { "--param-list", "-l" }).ExistingOnly().Required()
+        new Option<FileInfo>(["--param-db", "-d"]).Required(),
+        new Option<FileInfo>(["--param-list", "-l"]).ExistingOnly().Required()
     }.WithHandler(ParseHandler),
     new Command("print")
     {
-        new Option<FileInfo>(new string[] { "--param-db", "-d" }).ExistingOnly().Required(),
-        new Option<FileInfo>(new string[] { "--output", "-o" }).Required()
+        new Option<FileInfo>(["--param-db", "-d"]).ExistingOnly().Required(),
+        new Option<FileInfo>(["--output", "-o"]).Required()
     }.WithHandler(PrintHandler),
     new Command("json-convert")
     {
-        new Option<FileInfo>(new string[] { "--param-db", "-d" }).ExistingOnly().Required(),
-        new Option<FileInfo>(new string[] { "--content-db", "-c" }).ExistingOnly(),
-        new Option<FileInfo>(new string[] { "--instance-db", "-i" }).ExistingOnly(),
+        new Option<FileInfo>(["--param-db", "-d"]).ExistingOnly().Required(),
+        new Option<FileInfo>(["--content-db", "-c"]).ExistingOnly(),
+        new Option<FileInfo>(["--instance-db", "-i"]).ExistingOnly(),
         new Option<bool>("--write-jsonb"),
         new Option<bool>("--write-unformatted"),
         new Option<bool>("--no-write-json")

@@ -29,19 +29,19 @@ await new RootCommand()
     new Command("check").WithHandler(CheckHandler),
     new Command("build")
     {
-        new Option<FileInfo>(new[] { "--output", "-o" }).Required(),
+        new Option<FileInfo>(["--output", "-o"]).Required(),
         new Option<bool>("--skip-minify")
     }.WithHandler(BuildHandler),
     new Command("lua")
     {
-        new Option<FileInfo>(new[] { "--output", "-o" }).Required()
+        new Option<FileInfo>(["--output", "-o"]).Required()
     }.WithHandler(LuaHandler),
     new Command("codegen")
     {
-        new Option<FileInfo>(new[] { "--output", "-o" }).Required()
+        new Option<FileInfo>(["--output", "-o"]).Required()
     }.WithHandler(CodegenHandler)
 }
-.WithGlobalOption(new Option<DirectoryInfo>(new[] { "--definitions", "-d" }).Required().ExistingOnly())
+.WithGlobalOption(new Option<DirectoryInfo>(["--definitions", "-d"]).Required().ExistingOnly())
 .InvokeAsync(args);
 
 void ValidateHandler(DirectoryInfo defsDir)
