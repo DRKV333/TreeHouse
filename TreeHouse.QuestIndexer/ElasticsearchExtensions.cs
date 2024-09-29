@@ -1,7 +1,11 @@
 using System;
 using System.Linq.Expressions;
+using System.Text;
+using System.Threading.Tasks;
+using Elastic.Clients.Elasticsearch;
 using Elastic.Clients.Elasticsearch.IndexManagement;
 using Elastic.Clients.Elasticsearch.Mapping;
+using Elastic.Transport.Products.Elasticsearch;
 
 namespace TreeHouse.QuestIndexer;
 
@@ -32,4 +36,31 @@ internal static class ElasticsearchExtensions
     public static IndexSettingsDescriptor<T> SingleNode<T>(this IndexSettingsDescriptor<T> desc) => desc
         .NumberOfShards(1)
         .NumberOfReplicas(0);
+
+    public static TResponse CheckSuccess<TResponse>(this TResponse response, string? operation = null)
+        where TResponse : ElasticsearchResponse
+    {
+        if (!response.IsSuccess())
+        {
+            StringBuilder builder = new();
+            builder.Append("Elasticsearch API call failed");
+            if (operation != null)
+            {
+                builder.Append(" while ");
+                builder.Append(operation);
+            }
+            builder.AppendLine(":");
+            builder.AppendLine(response.ToString());
+
+            throw new InvalidOperationException(builder.ToString());
+        }
+
+        return response;
+    }
+
+    public static async Task<TResponse> CheckSuccess<TResponse>(this Task<TResponse> responseTask, string? operation = null)
+        where TResponse : ElasticsearchResponse
+    {
+        return CheckSuccess(await responseTask, operation);
+    }
 }

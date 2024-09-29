@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.CommandLine;
 using System.Diagnostics;
@@ -8,7 +8,6 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Elastic.Clients.Elasticsearch;
 using Elastic.Clients.Elasticsearch.Core.Search;
-using Elastic.Clients.Elasticsearch.IndexManagement;
 using Microsoft.Data.Sqlite;
 using TreeHouse.Common;
 using TreeHouse.Common.CommandLine;
@@ -63,7 +62,7 @@ static async Task IndexQuests(string elasticUrl, FileInfo source)
 {
     ElasticsearchClient client = CreateClient(elasticUrl);
 
-    CreateIndexResponse response = await client.Indices.CreateAsync<Quest>(i => i
+    await client.Indices.CreateAsync<Quest>(i => i
         .Settings(s => s.SingleNode())
         .Mappings(m => m
             .Properties(p => p
@@ -76,14 +75,7 @@ static async Task IndexQuests(string elasticUrl, FileInfo source)
                 .TextEnglishWithKeyword(x => x.Condition)
             )
         )
-    );
-
-    if (!response.IsSuccess())
-    {
-        Console.WriteLine("Could not create index ol-quest.");
-        Console.WriteLine(response);
-        return;
-    }
+    ).CheckSuccess("creating index ol-quest");
 
     using SqliteConnection connection = new(new SqliteConnectionStringBuilder()
     {
@@ -126,23 +118,17 @@ static async Task IndexQuests(string elasticUrl, FileInfo source)
         quests.Add(quest);
     }
 
-    BulkResponse indexRespose = await client.IndexManyAsync(quests);
-    if (!indexRespose.IsSuccess())
-    {
-        Console.WriteLine("Failed to index quests.");
-        Console.WriteLine(indexRespose);
-        return;
-    }
+    await client.IndexManyAsync(quests).CheckSuccess("indexing quests");
 
-    await client.Indices.RefreshAsync<Quest>();
-    await client.Indices.ForcemergeAsync<Quest>();
+    await client.Indices.RefreshAsync<Quest>().CheckSuccess();
+    await client.Indices.ForcemergeAsync<Quest>().CheckSuccess();
 }
 
 static async Task IndexDialogs(string elasticUrl, FileInfo source)
 {
     ElasticsearchClient client = CreateClient(elasticUrl);
 
-    CreateIndexResponse response = await client.Indices.CreateAsync<Dialog>(i => i
+    await client.Indices.CreateAsync<Dialog>(i => i
         .Settings(s => s.SingleNode())
         .Mappings(m => m
             .Properties(p => p
@@ -151,14 +137,7 @@ static async Task IndexDialogs(string elasticUrl, FileInfo source)
                 .IntegerNumber(x => x.Ver)
             )
         )
-    );
-
-    if (!response.IsSuccess())
-    {
-        Console.WriteLine("Could not create index ol-dialog.");
-        Console.WriteLine(response);
-        return;
-    }
+    ).CheckSuccess("creating index ol-dialog");
 
     using SqliteConnection connection = new(new SqliteConnectionStringBuilder()
     {
@@ -183,23 +162,17 @@ static async Task IndexDialogs(string elasticUrl, FileInfo source)
         });
     }
 
-    BulkResponse indexRespose = await client.IndexManyAsync(dialogs);
-    if (!indexRespose.IsSuccess())
-    {
-        Console.WriteLine("Failed to index dialogs.");
-        Console.WriteLine(indexRespose);
-        return;
-    }
+    await client.IndexManyAsync(dialogs).CheckSuccess("indexing dialogs");
 
-    await client.Indices.RefreshAsync<Dialog>();
-    await client.Indices.ForcemergeAsync<Dialog>();
+    await client.Indices.RefreshAsync<Dialog>().CheckSuccess();
+    await client.Indices.ForcemergeAsync<Dialog>().CheckSuccess();
 }
 
 static async Task IndexImages(string elasticUrl, DirectoryInfo source)
 {
     ElasticsearchClient client = CreateClient(elasticUrl);
 
-    CreateIndexResponse response = await client.Indices.CreateAsync<Image>(i => i
+    await client.Indices.CreateAsync<Image>(i => i
         .Settings(s => s.SingleNode())
         .Mappings(m => m
             .Properties(p => p
@@ -211,14 +184,7 @@ static async Task IndexImages(string elasticUrl, DirectoryInfo source)
                 )
             )
         )
-    );
-
-    if (!response.IsSuccess())
-    {
-        Console.WriteLine("Could not create index ol-image.");
-        Console.WriteLine(response);
-        return;
-    }
+    ).CheckSuccess("creating index ol-image");
 
     int batchSize = 100;
 
@@ -245,23 +211,16 @@ static async Task IndexImages(string elasticUrl, DirectoryInfo source)
         stopwatch.Stop();
         Console.WriteLine($"{batchIdx + 1}/{fileBatches.Count} {stopwatch.Elapsed}");
 
-        BulkResponse indexRespose = await client.IndexManyAsync(
+        await client.IndexManyAsync(
             fileBatch.Zip(featuresBatch).Select(x => new Image{
                 FileName = x.First.FullName,
                 Features = x.Second
             })
-        );
-
-        if (!indexRespose.IsSuccess())
-        {
-            Console.WriteLine("Failed to index dialogs.");
-            Console.WriteLine(indexRespose);
-            return;
-        }
+        ).CheckSuccess("indexing images");
     }
 
-    await client.Indices.RefreshAsync<Image>();
-    await client.Indices.ForcemergeAsync<Image>();
+    await client.Indices.RefreshAsync<Image>().CheckSuccess();
+    await client.Indices.ForcemergeAsync<Image>().CheckSuccess();
 
     Console.WriteLine("done");
 }
@@ -286,7 +245,7 @@ static async Task SearchImages(string elasticUrl, int size, FileInfo image)
         .DocvalueFields(f => f
             .Field(x => x.FileName)
         )
-    );
+    ).CheckSuccess();
 
     foreach (Hit<Image> hit in response.Hits)
     {
