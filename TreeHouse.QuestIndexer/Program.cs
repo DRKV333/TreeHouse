@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.CommandLine;
 using System.Diagnostics;
@@ -21,19 +21,19 @@ await new RootCommand()
     {
         new Option<FileInfo>(["-s", "--source"]).ExistingOnly().Required()
     }.WithHandler(IndexQuests),
-    new Command("delete-quests").WithHandler(DeleteQuests),
+    new Command("delete-quests").WithHandler(DeleteIndex<Quest>),
 
     new Command("index-dialogs")
     {
         new Option<FileInfo>(["-s", "--source"]).ExistingOnly().Required()
     }.WithHandler(IndexDialogs),
-    new Command("delete-dialogs").WithHandler(DeleteDialogs),
+    new Command("delete-dialogs").WithHandler(DeleteIndex<Dialog>),
 
     new Command("index-images")
     {
         new Option<DirectoryInfo>(["-s", "--source"]).ExistingOnly().Required()
     }.WithHandler(IndexImages),
-    new Command("delete-images").WithHandler(DeleteImages),
+    new Command("delete-images").WithHandler(DeleteIndex<Image>),
     new Command("search-images")
     {
         new Option<int>("--size").Default(5),
@@ -42,6 +42,12 @@ await new RootCommand()
 }
 .WithGlobalOption(new Option<string>(["-e", "--elastic-url"]).Required())
 .InvokeAsync(args);
+
+static async Task DeleteIndex<T>(string elasticUrl)
+{
+    ElasticsearchClient client = CreateClient(elasticUrl);
+    Console.WriteLine(await client.Indices.DeleteAsync<T>());
+}
 
 static ElasticsearchClient CreateClient(string elasticUrl)
 {
@@ -132,12 +138,6 @@ static async Task IndexQuests(string elasticUrl, FileInfo source)
     await client.Indices.ForcemergeAsync<Quest>();
 }
 
-static async Task DeleteQuests(string elasticUrl)
-{
-    ElasticsearchClient client = CreateClient(elasticUrl);
-    Console.WriteLine(await client.Indices.DeleteAsync<Quest>());
-}
-
 static async Task IndexDialogs(string elasticUrl, FileInfo source)
 {
     ElasticsearchClient client = CreateClient(elasticUrl);
@@ -193,12 +193,6 @@ static async Task IndexDialogs(string elasticUrl, FileInfo source)
 
     await client.Indices.RefreshAsync<Dialog>();
     await client.Indices.ForcemergeAsync<Dialog>();
-}
-
-static async Task DeleteDialogs(string elasticUrl)
-{
-    ElasticsearchClient client = CreateClient(elasticUrl);
-    Console.WriteLine(await client.Indices.DeleteAsync<Dialog>());
 }
 
 static async Task IndexImages(string elasticUrl, DirectoryInfo source)
@@ -270,12 +264,6 @@ static async Task IndexImages(string elasticUrl, DirectoryInfo source)
     await client.Indices.ForcemergeAsync<Image>();
 
     Console.WriteLine("done");
-}
-
-static async Task DeleteImages(string elasticUrl)
-{
-    ElasticsearchClient client = CreateClient(elasticUrl);
-    Console.WriteLine(await client.Indices.DeleteAsync<Image>());
 }
 
 static async Task SearchImages(string elasticUrl, int size, FileInfo image)
