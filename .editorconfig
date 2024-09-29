@@ -4,6 +4,7 @@ dotnet_diagnostic.IDE0290.severity = none
 
 # Disable "Collection initialization can be simplified", because it flags too many things that are not really collections.
 dotnet_diagnostic.IDE0028.severity = none
+dotnet_diagnostic.IDE0301.severity = none
 
 # Disable "Change return type of method .. from <BaseType> to <ConcreteType> for improved performance" as these are usually done on purpose.
 dotnet_diagnostic.CA1859.severity = none

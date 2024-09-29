@@ -1,12 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.CommandLine;
+using System.Diagnostics;
 using System.IO;
+using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Elastic.Clients.Elasticsearch;
+using Elastic.Clients.Elasticsearch.Core.Search;
 using Elastic.Clients.Elasticsearch.IndexManagement;
 using Microsoft.Data.Sqlite;
+using TreeHouse.Common;
 using TreeHouse.Common.CommandLine;
+using TreeHouse.ImageFeatures;
 using TreeHouse.QuestIndexer;
 
 await new RootCommand()
@@ -16,11 +22,23 @@ await new RootCommand()
         new Option<FileInfo>(new string[] { "-s", "--source" }).ExistingOnly().Required()
     }.WithHandler(IndexQuests),
     new Command("delete-quests").WithHandler(DeleteQuests),
+
     new Command("index-dialogs")
     {
         new Option<FileInfo>(new string[] { "-s", "--source" }).ExistingOnly().Required()
     }.WithHandler(IndexDialogs),
-    new Command("delete-dialogs").WithHandler(DeleteDialogs)
+    new Command("delete-dialogs").WithHandler(DeleteDialogs),
+
+    new Command("index-images")
+    {
+        new Option<DirectoryInfo>(new string[] { "-s", "--source" }).ExistingOnly().Required()
+    }.WithHandler(IndexImages),
+    new Command("delete-images").WithHandler(DeleteImages),
+    new Command("search-images")
+    {
+        new Option<int>("--size").Default(5),
+        new Argument<FileInfo>("image").ExistingOnly().Arity(ArgumentArity.ExactlyOne)
+    }.WithHandler(SearchImages)
 }
 .WithGlobalOption(new Option<string>(new string[] { "-e", "--elastic-url" }).Required())
 .InvokeAsync(args);
@@ -31,6 +49,7 @@ static ElasticsearchClient CreateClient(string elasticUrl)
         .DisableDirectStreaming()
         .DefaultMappingFor<Quest>(x => x.IndexName("ol-quest").IdProperty(x => x.ElasticId))
         .DefaultMappingFor<Dialog>(x => x.IndexName("ol-dialog").IdProperty(x => x.ElasticId))
+        .DefaultMappingFor<Image>(x => x.IndexName("ol-image").IdProperty(x => x.ElasticId))
     );
 }
 
@@ -180,4 +199,109 @@ static async Task DeleteDialogs(string elasticUrl)
 {
     ElasticsearchClient client = CreateClient(elasticUrl);
     Console.WriteLine(await client.Indices.DeleteAsync<Dialog>());
+}
+
+static async Task IndexImages(string elasticUrl, DirectoryInfo source)
+{
+    ElasticsearchClient client = CreateClient(elasticUrl);
+
+    CreateIndexResponse response = await client.Indices.CreateAsync<Image>(i => i
+        .Settings(s => s.SingleNode())
+        .Mappings(m => m
+            .Properties(p => p
+                .Keyword(x => x.FileName)
+                .DenseVector(x => x.Features, v => v
+                    .ElementType("float")
+                    .Dims(ImageFeatureExtractor.FeaturesDim)
+                    .Similarity("l2_norm")
+                )
+            )
+        )
+    );
+
+    if (!response.IsSuccess())
+    {
+        Console.WriteLine("Could not create index ol-image.");
+        Console.WriteLine(response);
+        return;
+    }
+
+    int batchSize = 100;
+
+    using ImageFeatureExtractor extractor = new(batchSize);
+
+    List<FileInfo[]> fileBatches = source
+        .EnumerateFiles("*.png", new EnumerationOptions() { RecurseSubdirectories = true })
+        .Chunk(batchSize)
+        .ToList();
+
+    foreach ((FileInfo[] fileBatch, int batchIdx) in fileBatches.WithIndex())
+    {
+        Stopwatch stopwatch = new();
+        stopwatch.Start();
+
+        foreach ((FileInfo file, int fileIdx) in fileBatch.WithIndex())
+        {
+            using Stream fileStream = file.OpenRead();
+            await extractor.SetInputImage(fileStream, fileIdx);
+        }
+
+        IReadOnlyList<float[]> featuresBatch = await extractor.GetFeatures();
+
+        stopwatch.Stop();
+        Console.WriteLine($"{batchIdx + 1}/{fileBatches.Count} {stopwatch.Elapsed}");
+
+        BulkResponse indexRespose = await client.IndexManyAsync(
+            fileBatch.Zip(featuresBatch).Select(x => new Image{
+                FileName = x.First.FullName,
+                Features = x.Second
+            })
+        );
+
+        if (!indexRespose.IsSuccess())
+        {
+            Console.WriteLine("Failed to index dialogs.");
+            Console.WriteLine(indexRespose);
+            return;
+        }
+    }
+
+    await client.Indices.RefreshAsync<Image>();
+    await client.Indices.ForcemergeAsync<Image>();
+
+    Console.WriteLine("done");
+}
+
+static async Task DeleteImages(string elasticUrl)
+{
+    ElasticsearchClient client = CreateClient(elasticUrl);
+    Console.WriteLine(await client.Indices.DeleteAsync<Image>());
+}
+
+static async Task SearchImages(string elasticUrl, int size, FileInfo image)
+{
+    using ImageFeatureExtractor extractor = new(1);
+    using Stream fileStream = image.OpenRead();
+    await extractor.SetInputImage(fileStream, 0);
+    float[] features = (await extractor.GetFeatures())[0];
+
+    ElasticsearchClient client = CreateClient(elasticUrl);
+
+    SearchResponse<Image> response = await client.SearchAsync<Image>(s => s
+        .Knn(k => k
+            .k(size)
+            .Field(x => x.Features)
+            .QueryVector(features)
+        )
+        .Size(size)
+        .Source(new SourceConfig(false))
+        .DocvalueFields(f => f
+            .Field(x => x.FileName)
+        )
+    );
+
+    foreach (Hit<Image> hit in response.Hits)
+    {
+        Console.WriteLine($"{hit.Score} {((JsonElement)hit.Fields!.Values.First())[0]}");
+    }
 }

@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace TreeHouse.Common.CommandLine;
@@ -41,6 +43,12 @@ public static class CommandlineExtensions
     public static Option<T> Required<T>(this Option<T> option)
     {
         option.IsRequired = true;
+        return option;
+    }
+
+    public static Option<T> Default<T>(this Option<T> option, T defaultValue)
+    {
+        option.SetDefaultValue(defaultValue);
         return option;
     }
 

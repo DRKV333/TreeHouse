@@ -9,8 +9,9 @@ namespace TreeHouse.ImageFeatures;
 
 public class ImageFeatureExtractor : IDisposable
 {
+    public const int FeaturesDim = 2048;
+
     private const int InputDim = 224;
-    private const int FeaturesDim = 2048;
     private const int ChannelStride = InputDim * InputDim;
     private const int BatchStride = 3 * ChannelStride;
 
