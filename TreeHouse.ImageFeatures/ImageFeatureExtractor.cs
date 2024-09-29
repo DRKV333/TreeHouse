@@ -79,16 +79,21 @@ public class ImageFeatureExtractor : IDisposable
     {
         ObjectDisposedException.ThrowIf(disposedValue, this);
 
-        await session.RunAsync(
-            runOptions,
-            inputNames: [ "data" ],
-            inputValues: [ inputTensor ],
-            outputNames: [ "features" ],
-            outputValues: [ outputTensor ]
-        );
-
-        // TODO: Remove this once microsoft/onnxruntime#22237 is resolved
-        await Task.Yield();
+        try
+        {
+            await session.RunAsync(
+                runOptions,
+                inputNames: [ "data" ],
+                inputValues: [ inputTensor ],
+                outputNames: [ "features" ],
+                outputValues: [ outputTensor ]
+            );
+        }
+        finally
+        {
+            // TODO: Remove this once microsoft/onnxruntime#22237 is resolved
+            await Task.Yield();
+        }
 
         return OutputTensorToArrays();
     }
