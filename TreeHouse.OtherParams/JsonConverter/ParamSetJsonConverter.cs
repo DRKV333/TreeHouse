@@ -15,24 +15,24 @@ public class ParamSetJsonConverter
 
     private static readonly Dictionary<ParamType, JsonReader> JsonReaders = new()
     {
-        [ParamType.Float] = (ref SpanReader r) => JsonValue.Create(r.ReadSingleLE()),
+        [ParamType.Float] = ReadFloat,
         [ParamType.String] = ReadString,
         [ParamType.JSON] = ReadJson,
         [ParamType.ContentRef] = ReadString,
         [ParamType.ContentRefAndInt] = ReadString,
         [ParamType.ContentRefList] = ReadString,
         [ParamType.InstanceGroup] = ReadString, // TODO: Parse some of these strings a bit more?
-        [ParamType.Int] = (ref SpanReader r) => JsonValue.Create(r.ReadInt32LE()),
+        [ParamType.Int] = ReadInt,
         [ParamType.Int64] = (ref SpanReader r) => JsonValue.Create(r.ReadInt64LE()),
         [ParamType.AvatarID] = (ref SpanReader r) => JsonValue.Create(r.ReadUInt64LE()),
         [ParamType.Bool] = (ref SpanReader r) => JsonValue.Create(r.ReadByte() != 0),
-        [ParamType.Guid] = (ref SpanReader r) => JsonValue.Create(r.ReadGuidLE()),
-        [ParamType.LocalizedString] = (ref SpanReader r) => JsonValue.Create(r.ReadGuidLE()),
+        [ParamType.Guid] = ReadGuid,
+        [ParamType.LocalizedString] = ReadGuid,
         [ParamType.FloatRange] = (ref SpanReader r) => ReadFixedFloatArray(ref r, 2),
         [ParamType.Vector3] = (ref SpanReader r) => ReadFixedFloatArray(ref r, 3),
-        [ParamType.IntVector] = (ref SpanReader r) => ReadVector(ref r, (ref SpanReader re) => JsonValue.Create(re.ReadInt32LE())),
+        [ParamType.IntVector] = (ref SpanReader r) => ReadVector(ref r, ReadInt),
         [ParamType.StringVector] = (ref SpanReader r) => ReadVector(ref r, ReadString),
-        [ParamType.LocalizedStringVector] = (ref SpanReader r) => ReadVector(ref r, (ref SpanReader re) => JsonValue.Create(re.ReadGuidLE().ToString())),
+        [ParamType.LocalizedStringVector] = (ref SpanReader r) => ReadVector(ref r, ReadGuid),
     };
 
     private readonly Dictionary<ushort, ParamDeclaration> paramsById;
@@ -73,15 +73,21 @@ public class ParamSetJsonConverter
         }
     }
 
+    private static JsonValue ReadGuid(ref SpanReader reader) => JsonValue.Create(reader.ReadGuidLE());
+
+    private static JsonValue ReadInt(ref SpanReader reader) => JsonValue.Create(reader.ReadInt32LE());
+
+    private static JsonValue ReadFloat(ref SpanReader reader) => JsonValue.Create(reader.ReadSingleLE());
+
     private static JsonArray ReadFixedFloatArray(ref SpanReader reader, int length)
     {
         JsonArray array = new();
 
         for (int i = 0; i < length; i++)
         {
-            array.Add(JsonValue.Create(reader.ReadSingleLE()));
+            array.Add(ReadFloat(ref reader));
         }
-        
+
         return array;
     }
 
@@ -94,7 +100,7 @@ public class ParamSetJsonConverter
         {
             array.Add(readElement(ref reader));
         }
-        
+
         return array;
     }
 
