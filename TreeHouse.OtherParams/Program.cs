@@ -29,7 +29,8 @@ await new RootCommand()
         new Option<FileInfo>(["--instance-db", "-i"]).ExistingOnly(),
         new Option<bool>("--write-jsonb"),
         new Option<bool>("--write-unformatted"),
-        new Option<bool>("--no-write-json")
+        new Option<bool>("--no-write-json"),
+        new Option<bool>("--no-defaults")
     }.WithHandler(JsonConvertHandler)
 }
 .InvokeAsync(args);
@@ -55,7 +56,7 @@ async Task PrintHandler(FileInfo paramDb, FileInfo output)
     await template.RenderAsync(writer);
 }
 
-async Task JsonConvertHandler(FileInfo paramDb, FileInfo? contentDb, FileInfo? instanceDb, bool writeJsonb, bool writeUnformatted, bool noWriteJson)
+async Task JsonConvertHandler(FileInfo paramDb, FileInfo? contentDb, FileInfo? instanceDb, bool writeJsonb, bool writeUnformatted, bool noWriteJson, bool noDefaults)
 {
     if (contentDb == null && instanceDb == null)
     {
@@ -66,22 +67,26 @@ async Task JsonConvertHandler(FileInfo paramDb, FileInfo? contentDb, FileInfo? i
     using ParamDb db = ParamDb.Open(paramDb.FullName);
     ParamSetJsonConverter converter = await ParamSetJsonConverter.CreateInstance(db);
 
+    ContentDbJsonConverter? contentDbConverter = null;
+
     if (contentDb != null)
     {
+        DefaultValueProvider<int>? paramDefaultsProvider = noDefaults ? null : await DefaultValueParser.CreateProvider(db);
+
         using SqliteConnection connection = SqliteUtils.Open(contentDb.FullName, write: true);
-        ContentDbJsonConverter dbConverter = new(converter);
+        contentDbConverter = new(converter, paramDefaultsProvider);
 
         Console.WriteLine("Reading content db...");
 
         foreach (Table table in await db.Tables.ToListAsync())
         {
             Console.WriteLine($"Reading table {table.Name}...");
-            dbConverter.ReadParamSets(connection, table);
+            contentDbConverter.ReadParamSets(connection, table);
         }
 
         Console.WriteLine("Writing json to content db...");
 
-        dbConverter.WriteParamSetsJson(
+        contentDbConverter.WriteParamSetsJson(
             connection: connection,
             writeJson: !noWriteJson,
             formatJson: !writeUnformatted,
@@ -91,16 +96,18 @@ async Task JsonConvertHandler(FileInfo paramDb, FileInfo? contentDb, FileInfo? i
 
     if (instanceDb != null)
     {
+        DefaultValueProvider<Guid>? contentDefaultsProvider = noDefaults ? null : contentDbConverter?.GetDefaultValueProvider();
+
         using SqliteConnection connection = SqliteUtils.Open(instanceDb.FullName, write: true);
-        InstanceDbJsonConverter dbConverter = new(converter);
+        InstanceDbJsonConverter instanceDbConverter = new(converter, contentDefaultsProvider);
 
         Console.WriteLine("Reading instance db...");
 
-        dbConverter.ReadParamSets(connection);
+        instanceDbConverter.ReadParamSets(connection);
 
         Console.WriteLine("Writing json to instance db...");
 
-        dbConverter.WriteParamSetsJson(
+        instanceDbConverter.WriteParamSetsJson(
             connection: connection,
             writeJson: !noWriteJson,
             formatJson: !writeUnformatted,

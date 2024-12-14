@@ -13,43 +13,33 @@ namespace TreeHouse.OtherParams.JsonConverter;
 
 public abstract class DbJsonConverterBase
 {
-    private readonly ParamSetJsonConverter converter;
+    protected const int OrdKeyColumn = 0;
+    protected const int OrdDataColumn = 1;
+    protected const int OrdExtraOffset = 2;
 
-    private readonly string keyColumn;
-    private readonly string dataColumn;
-    private readonly string? classIdColumn;
-    private readonly string? extraColumn;
+    protected readonly ParamSetJsonConverter converter;
+
+    private readonly string columns;
+    protected readonly string keyColumn;
+    protected readonly int? ordClassIdColumn;
 
     private readonly Dictionary<string, Dictionary<Guid, JsonObject>> paramSetsJson = new();
 
     private readonly byte[] commonBlobBuffer = new byte[100 * 2^10];
 
-    protected DbJsonConverterBase(ParamSetJsonConverter converter, string keyColumn, string dataColumn, string? classIdColumn, string? extraColumn = null)
+    protected DbJsonConverterBase(ParamSetJsonConverter converter, string keyColumn, string dataColumn, IEnumerable<string> extraColumns, int? ordClassIdColumn)
     {
         this.converter = converter;
         this.keyColumn = keyColumn;
-        this.dataColumn = dataColumn;
-        this.classIdColumn = classIdColumn;
-        this.extraColumn = extraColumn;
+        this.ordClassIdColumn = ordClassIdColumn;
+
+        columns = string.Join(", ", new[] { keyColumn, dataColumn }.Concat(extraColumns));
     }
 
     protected void ReadParamSetsForTable(SqliteConnection connection, string table)
     {
-        int extraOrd = 2;
-
-        StringBuilder commandBuilder = new();
-        commandBuilder.Append($"SELECT {keyColumn}, {dataColumn}");
-        if (classIdColumn != null)
-        {
-            commandBuilder.Append($", {classIdColumn}");
-            extraOrd = 3;
-        }
-        if (extraColumn != null)
-            commandBuilder.Append($", {extraColumn}");
-        commandBuilder.Append($" FROM {table}");
-
         using SqliteCommand command = connection.CreateCommand();
-        command.CommandText = commandBuilder.ToString();
+        command.CommandText = $"SELECT {columns} FROM {table}";
 
         using SqliteDataReader reader = command.ExecuteReader();
 
@@ -59,12 +49,13 @@ public abstract class DbJsonConverterBase
 
             try
             {
-                key = Guid.Parse(reader.GetString(0));
-                int? classId = classIdColumn != null ? reader.GetInt32(2) : null;
-                string? extra = extraColumn != null ? reader.GetString(extraOrd) : null;
+                key = Guid.Parse(reader.GetString(OrdKeyColumn));
+                int? classId = ordClassIdColumn != null ? reader.GetInt32(ordClassIdColumn.Value) : null;
 
-                using Stream dataBlob = reader.GetStream(1);
-                ReadFromBlob(table, key, dataBlob, classId, extra);
+                JsonObject json = GetDefaultJson(table, reader);
+
+                using Stream dataBlob = reader.GetStream(OrdDataColumn);
+                ReadFromBlob(json, table, key, dataBlob, classId);
             }
             catch (Exception e)
             {
@@ -73,12 +64,10 @@ public abstract class DbJsonConverterBase
         }
     }
 
-    protected virtual JsonObject GetDefaultJson(string table, Guid key, int? classId, string? extra) => new JsonObject();
+    protected virtual JsonObject GetDefaultJson(string table, SqliteDataReader reader) => new JsonObject();
 
-    private void ReadFromBlob(string table, Guid key, Stream blob, int? classId, string? extra)
+    private void ReadFromBlob(JsonObject json, string table, Guid key, Stream blob, int? classId)
     {
-        JsonObject json = GetDefaultJson(table, key, classId, extra);
-
         byte[] blobBuffer = commonBlobBuffer;
 
         int blobLength = (int)blob.Length;
