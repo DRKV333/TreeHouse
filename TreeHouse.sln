@@ -21,6 +21,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TreeHouse.ImageFeatures", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TreeHouse.QuestIndexer", "TreeHouse.QuestIndexer\TreeHouse.QuestIndexer.csproj", "{4D6A7147-D283-4BDA-A63E-980AF4732BE0}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "UniDelta", "UniDelta", "{6B8914C4-38BF-492C-B2DE-9081E941C3D7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UniDelta.Myers", "UniDelta\UniDelta.Myers\UniDelta.Myers.csproj", "{045C0A81-609E-480B-A4BD-1B7978691BF4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TreeHouse.LocalizationDiffer", "TreeHouse.LocalizationDiffer\TreeHouse.LocalizationDiffer.csproj", "{0D0270DA-7970-4A42-9FBA-4DF9D0190CD3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -63,11 +69,22 @@ Global
 		{4D6A7147-D283-4BDA-A63E-980AF4732BE0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4D6A7147-D283-4BDA-A63E-980AF4732BE0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4D6A7147-D283-4BDA-A63E-980AF4732BE0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{045C0A81-609E-480B-A4BD-1B7978691BF4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{045C0A81-609E-480B-A4BD-1B7978691BF4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{045C0A81-609E-480B-A4BD-1B7978691BF4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{045C0A81-609E-480B-A4BD-1B7978691BF4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0D0270DA-7970-4A42-9FBA-4DF9D0190CD3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0D0270DA-7970-4A42-9FBA-4DF9D0190CD3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0D0270DA-7970-4A42-9FBA-4DF9D0190CD3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0D0270DA-7970-4A42-9FBA-4DF9D0190CD3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {1FEEC95D-3122-45AF-A442-89834A871904}
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{045C0A81-609E-480B-A4BD-1B7978691BF4} = {6B8914C4-38BF-492C-B2DE-9081E941C3D7}
 	EndGlobalSection
 EndGlobal

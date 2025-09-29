@@ -7,3 +7,6 @@
 [submodule "readerwriterqueue/readerwriterqueue"]
 	path = TreeHouse.Othertransport/ThirdParty/readerwriterqueue/readerwriterqueue
 	url = https://github.com/cameron314/readerwriterqueue.git
+[submodule "UniDelta"]
+	path = UniDelta
+	url = https://github.com/DRKV333/UniDelta.git
