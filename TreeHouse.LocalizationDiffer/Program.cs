@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Data.Sqlite;
 using TreeHouse.Common.CommandLine;
+using TreeHouse.LocalizationDiffer;
 using UniDelta.Myers;
 
 (string table, string[] columns)[] ColumnsToDiff =
@@ -15,8 +16,9 @@ using UniDelta.Myers;
     ( "Quest", [ "DisplayName", "Desc", "OfferDialog", "AcceptDialog", "CompleteDialog" ])
 ];
 
-string TablePrefix = "TABLE: ";
-string ColumnPrefix = "COLUMN: ";
+string TablePrefix = "# TABLE: ";
+string ColumnPrefix = "## COLUMN: ";
+string IDPrefix = "### ";
 
 int ContextSize = 15;
 
@@ -86,9 +88,9 @@ async Task Diff(FileInfo original, FileInfo edited, FileInfo patchOut)
                     new StringListAdapter(editedText)
                 );
 
-                await patchWriter.WriteLineAsync(id.ToString());
-                await patchWriter.WriteLineAsync(MakeContext(editScript, originalText, editedText));
-                await CharEditScriptSerializer.WriteAsync(editScript, patchWriter);
+                await patchWriter.WriteLineAsync(IDPrefix + id);
+                await MarkdownSerializer.WriteAsync(patchWriter, ContextSize, editScript, originalText);
+                await patchWriter.WriteLineAsync();
                 await patchWriter.WriteLineAsync();
 
                 rowCount++;
@@ -135,30 +137,4 @@ static void Attach(SqliteConnection connection, string path, string name)
     command.CommandText = $"ATTACH DATABASE @path AS {name}";
     command.Parameters.AddWithValue("@path", path);
     command.ExecuteNonQuery();
-}
-
-string MakeContext(EditScript<char> editScript, string originalText, string editedText)
-{
-    int contextStart = Math.Min(
-        editScript.Inserts.Count > 0 ? editScript.Inserts[0].Index : int.MaxValue,
-        editScript.Deletes.Count > 0 ? editScript.Deletes[0].Index : int.MaxValue
-    );
-
-    int contextEnd = Math.Max(
-        editScript.Inserts.Count > 0 ? editScript.Inserts[^1].Index : int.MinValue,
-        editScript.Deletes.Count > 0 ? editScript.Deletes[^1].Index + editScript.Deletes[^1].Lenght : int.MinValue
-    );
-
-    int contextEndEdited = contextEnd +
-        editScript.Inserts.Sum(x => x.Values.Count) -
-        editScript.Deletes.Sum(x => x.Lenght);
-
-    contextStart = Math.Max(0, contextStart - ContextSize);
-    contextEnd = Math.Min(originalText.Length, contextEnd + ContextSize);
-    contextEndEdited = Math.Min(editedText.Length, contextEndEdited + ContextSize);
-
-    int contextLength = contextEnd - contextStart;
-    int contextLengthEdited = contextEndEdited - contextStart;
-
-    return $"'{originalText.Substring(contextStart, contextLength)}' -> '{editedText.Substring(contextStart, contextLengthEdited)}'";
 }
