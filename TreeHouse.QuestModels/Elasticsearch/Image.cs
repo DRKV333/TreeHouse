@@ -1,7 +1,7 @@
 using System;
 using Elastic.Clients.Elasticsearch;
 
-namespace TreeHouse.QuestModels;
+namespace TreeHouse.QuestModels.Elasticsearch;
 
 public class Image
 {

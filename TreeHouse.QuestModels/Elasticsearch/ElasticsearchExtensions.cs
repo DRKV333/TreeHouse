@@ -5,7 +5,7 @@ using Elastic.Clients.Elasticsearch;
 using Elastic.Clients.Elasticsearch.IndexManagement;
 using Elastic.Transport.Products.Elasticsearch;
 
-namespace TreeHouse.QuestModels;
+namespace TreeHouse.QuestModels.Elasticsearch;
 
 public static class ElasticsearchExtensions
 {

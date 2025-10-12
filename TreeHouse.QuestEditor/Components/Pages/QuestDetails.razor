@@ -1,0 +1,58 @@
+@using Microsoft.AspNetCore.Components.Web
+@using BlazorBootstrap
+@using TreeHouse.QuestEditor.Services
+@using TreeHouse.QuestModels.Elasticsearch
+@using TreeHouse.QuestModels.Mongo
+
+@page "/details/{id}"
+
+@inject MongoDbService mongoDbService
+@inject ElasticsearchService elasticService
+
+@attribute [StreamRendering]
+
+<PageTitle>@data.Name</PageTitle>
+
+<h1 class="mb-5">@data.Name</h1>
+
+<form class="container">
+    <div class="row mb-3">
+        <label for="input-desc" class="col-2 col-form-label">Description:</label>
+        <div class="col-5">
+            <TextAreaInput id="input-desc" @bind-Value="quest.Desc" Rows="5" Disabled="true" />
+        </div>
+    </div>
+    <div class="row mb-3">
+        <label for="input-level" class="col-2 col-form-label">Level:</label>
+        <div class="col-5">
+            <NumberInput id="input-level" TValue="int?" @bind-Value="data.Level" />
+        </div>
+    </div>
+    <div class="row mb-3">
+        <label for="input-exp" class="col-2 col-form-label">Exp:</label>
+        <div class="col-5">
+            <NumberInput id="input-exp" TValue="int?" @bind-Value="data.Exp" />
+        </div>
+    </div>
+    <div class="row mb-3">
+        <label for="input-bits" class="col-2 col-form-label">Bits:</label>
+        <div class="col-5">
+            <NumberInput id="input-bits" TValue="int?" @bind-Value="data.Bits" />
+        </div>
+    </div>
+</form>
+
+@code {
+    [Parameter]
+    public string Id { get; set; } = null!;
+
+    private QuestData data = new();
+
+    private Quest quest = new();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        data = await mongoDbService.GetByMongoId(Id);
+        quest = await elasticService.GetQuestById(data.Id);
+    }
+}

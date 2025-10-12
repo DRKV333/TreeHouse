@@ -1,0 +1,62 @@
+﻿@using BlazorBootstrap
+@using Microsoft.AspNetCore.Components.Routing
+@using TreeHouse.QuestEditor.Services
+
+@inherits LayoutComponentBase
+
+@inject MongoDbService mongoDbService
+
+<BlazorBootstrapLayout StickyHeader="true">
+
+    <HeaderSection>
+        <ThemeSwitcher Class="ps-3 ps-lg-2" />
+
+        <a href="https://github.com/DRKV333/TreeHouse" class="ps-3">
+            <Icon Name="IconName.Github" />
+        </a>
+    </HeaderSection>
+
+    <SidebarSection>
+        <Sidebar
+            IconName="IconName.Compass"
+            Title="TreeHouse Quest Editor"
+            DataProvider="SidebarDataProvider"
+        />
+    </SidebarSection>
+
+    <ContentSection>
+        @Body
+    </ContentSection>
+
+</BlazorBootstrapLayout>
+
+@code {
+    private async Task<SidebarDataProviderResult> SidebarDataProvider(SidebarDataProviderRequest request)
+    {
+        return request.ApplyTo(
+            await mongoDbService.GetAllNavItems().Select(x => 
+                new NavItem()
+                {
+                    Id = x.MongoId,
+                    Href = $"/details/{x.MongoId}",
+                    IconName = IconName.Archive,
+                    Text = x.Name,
+                })
+            .ToListAsync()
+        );
+    }
+}
+
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+    <div id="blazor-error-ui" class="toast text-bg-danger" data-nosnippet>
+        <div class="toast-header">
+            <Icon Name="IconName.Bug" Class="px-2" />
+            <strong class="me-auto">Error</strong>
+            <button type="button" class="btn-close dismiss"></button>
+        </div>
+        <div class="toast-body">
+            An unhandled error has occurred.
+            <button type="button" class="btn btn-outline-warning btn-sm mx-2 reload">Reload</button>
+        </div>
+    </div>
+</div>

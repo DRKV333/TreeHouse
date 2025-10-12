@@ -3,7 +3,7 @@ using System.Linq.Expressions;
 using Elastic.Clients.Elasticsearch.IndexManagement;
 using Elastic.Clients.Elasticsearch.Mapping;
 
-namespace TreeHouse.QuestModels;
+namespace TreeHouse.QuestModels.Elasticsearch;
 
 internal static class ElasticsearchMappingExtensions
 {
