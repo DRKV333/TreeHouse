@@ -1,9 +1,11 @@
 using Elastic.Clients.Elasticsearch;
 
-namespace TreeHouse.QuestIndexer;
+namespace TreeHouse.QuestModels;
 
-internal class Dialog
+public class Dialog
 {
+    public const string IndexName = "ol-dialog";
+
     public Id ElasticId { get; set; } = null!;
 
     public long Id { get; set; }

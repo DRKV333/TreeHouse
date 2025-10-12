@@ -1,10 +1,12 @@
 using System;
 using Elastic.Clients.Elasticsearch;
 
-namespace TreeHouse.QuestIndexer;
+namespace TreeHouse.QuestModels;
 
-internal class Image
+public class Image
 {
+    public const string IndexName = "ol-image";
+
     public Id ElasticId { get; set; } = null!;
 
     public string FileName { get; set; } = "";

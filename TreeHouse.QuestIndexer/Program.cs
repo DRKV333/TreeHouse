@@ -12,7 +12,7 @@ using Microsoft.Data.Sqlite;
 using TreeHouse.Common;
 using TreeHouse.Common.CommandLine;
 using TreeHouse.ImageFeatures;
-using TreeHouse.QuestIndexer;
+using TreeHouse.QuestModels;
 
 await new RootCommand()
 {
@@ -50,32 +50,15 @@ static async Task DeleteIndex<T>(string elasticUrl)
 
 static ElasticsearchClient CreateClient(string elasticUrl)
 {
-    return new ElasticsearchClient(new ElasticsearchClientSettings(new Uri(elasticUrl))
-        .DisableDirectStreaming()
-        .DefaultMappingFor<Quest>(x => x.IndexName("ol-quest").IdProperty(x => x.ElasticId))
-        .DefaultMappingFor<Dialog>(x => x.IndexName("ol-dialog").IdProperty(x => x.ElasticId))
-        .DefaultMappingFor<Image>(x => x.IndexName("ol-image").IdProperty(x => x.ElasticId))
-    );
+    return new ElasticsearchClient(new ElasticsearchClientSettings(new Uri(elasticUrl)).ConfigureQuestModels());
 }
 
 static async Task IndexQuests(string elasticUrl, FileInfo source)
 {
     ElasticsearchClient client = CreateClient(elasticUrl);
 
-    await client.Indices.CreateAsync<Quest>(i => i
-        .Settings(s => s.SingleNode())
-        .Mappings(m => m
-            .Properties(p => p
-                .IdKeywordWithNumber(x => x.Id)
-                .TextEnglishWithKeyword(x => x.Name)
-                .TextEnglishWithKeyword(x => x.Desc)
-                .TextEnglishWithKeyword(x => x.Offer)
-                .TextEnglishWithKeyword(x => x.Accept)
-                .TextEnglishWithKeyword(x => x.Complete)
-                .TextEnglishWithKeyword(x => x.Condition)
-            )
-        )
-    ).CheckSuccess("creating index ol-quest");
+    await client.Indices.CreateAsync<Quest>(i => i.CreateQuest())
+        .CheckSuccess($"creating index {Quest.IndexName}");
 
     using SqliteConnection connection = new(new SqliteConnectionStringBuilder()
     {
@@ -128,16 +111,8 @@ static async Task IndexDialogs(string elasticUrl, FileInfo source)
 {
     ElasticsearchClient client = CreateClient(elasticUrl);
 
-    await client.Indices.CreateAsync<Dialog>(i => i
-        .Settings(s => s.SingleNode())
-        .Mappings(m => m
-            .Properties(p => p
-                .IdKeywordWithNumber(x => x.Id)
-                .TextEnglish(x => x.Text)
-                .IntegerNumber(x => x.Ver)
-            )
-        )
-    ).CheckSuccess("creating index ol-dialog");
+    await client.Indices.CreateAsync<Dialog>(i => i.CreateDialog())
+        .CheckSuccess($"creating index {Dialog.IndexName}");
 
     using SqliteConnection connection = new(new SqliteConnectionStringBuilder()
     {
@@ -172,19 +147,8 @@ static async Task IndexImages(string elasticUrl, DirectoryInfo source)
 {
     ElasticsearchClient client = CreateClient(elasticUrl);
 
-    await client.Indices.CreateAsync<Image>(i => i
-        .Settings(s => s.SingleNode())
-        .Mappings(m => m
-            .Properties(p => p
-                .Keyword(x => x.FileName)
-                .DenseVector(x => x.Features, v => v
-                    .ElementType("float")
-                    .Dims(ImageFeatureExtractor.FeaturesDim)
-                    .Similarity("l2_norm")
-                )
-            )
-        )
-    ).CheckSuccess("creating index ol-image");
+    await client.Indices.CreateAsync<Image>(i => i.CreateImage(ImageFeatureExtractor.FeaturesDim))
+        .CheckSuccess($"creating index {Image.IndexName}");
 
     int batchSize = 100;
 

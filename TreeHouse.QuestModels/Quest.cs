@@ -1,10 +1,12 @@
 using System.Collections.Generic;
 using Elastic.Clients.Elasticsearch;
 
-namespace TreeHouse.QuestIndexer;
+namespace TreeHouse.QuestModels;
 
-internal class Quest
+public class Quest
 {
+    public const string IndexName = "ol-quest";
+
     public Id ElasticId { get; set; } = null!;
 
     public long Id { get; set; }

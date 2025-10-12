@@ -8,9 +8,9 @@
     <ProjectReference Include="..\TreeHouse.Common\TreeHouse.Common.csproj" />
     <ProjectReference Include="..\TreeHouse.Common.CommandLine\TreeHouse.Common.CommandLine.csproj" />
     <ProjectReference Include="..\TreeHouse.ImageFeatures\TreeHouse.ImageFeatures.csproj" />
+    <ProjectReference Include="..\TreeHouse.QuestModels\TreeHouse.QuestModels.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Elastic.Clients.Elasticsearch" Version="8.14.8" />
     <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.6" />
     <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
   </ItemGroup>
