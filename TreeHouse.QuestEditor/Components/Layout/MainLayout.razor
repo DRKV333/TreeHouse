@@ -1,5 +1,6 @@
 ﻿@using BlazorBootstrap
 @using Microsoft.AspNetCore.Components.Routing
+@using TreeHouse.Common
 @using TreeHouse.QuestEditor.Services
 
 @inherits LayoutComponentBase
@@ -33,17 +34,47 @@
 @code {
     private async Task<SidebarDataProviderResult> SidebarDataProvider(SidebarDataProviderRequest request)
     {
-        return request.ApplyTo(
-            await mongoDbService.GetAllNavItems().Select(x => 
-                new NavItem()
+        return request.ApplyTo(await GetNavItems().ToListAsync());
+    }
+
+    private async IAsyncEnumerable<NavItem> GetNavItems()
+    {
+        yield return new NavItem()
+        {
+            Id = "nav-home",
+            Href = "/",
+            IconName = IconName.House,
+            Text = "Home",
+            Match = NavLinkMatch.All
+        };
+
+        string? category = null;
+        string? groupId = null;
+
+        await foreach (QuestNavItem item in mongoDbService.GetAllNavItems())
+        {
+            if (category != item.Category)
+            {
+                category = item.Category;
+                groupId = "navgroup-" + item.Category;
+
+                yield return new NavItem()
                 {
-                    Id = x.MongoId,
-                    Href = $"/details/{x.MongoId}",
-                    IconName = IconName.Archive,
-                    Text = x.Name,
-                })
-            .ToListAsync()
-        );
+                    Id = groupId,
+                    IconName = IconName.Collection,
+                    Text = item.Category.Capitalize()
+                };
+            }
+
+            yield return new NavItem()
+            {
+                Id = item.MongoId,
+                Href = $"/details/{item.MongoId}",
+                IconName = IconName.GeoAlt,
+                Text = item.Name,
+                ParentId = groupId!
+            };
+        }
     }
 }
 

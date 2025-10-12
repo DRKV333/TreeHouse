@@ -9,5 +9,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\TreeHouse.QuestModels\TreeHouse.QuestModels.csproj" />
+    <ProjectReference Include="..\TreeHouse.Common\TreeHouse.Common.csproj" />
   </ItemGroup>
 </Project>

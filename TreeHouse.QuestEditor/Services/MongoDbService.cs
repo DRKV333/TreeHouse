@@ -20,6 +20,7 @@ internal class MongoDbService(IOptions<DbConfig> config)
             x => new QuestNavItem()
             {
                 Name = x.Name,
+                Category = x.Category,
                 MongoId = x.MongoId.ToString()
             }
         ))
