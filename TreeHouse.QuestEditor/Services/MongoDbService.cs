@@ -29,4 +29,6 @@ internal class MongoDbService(IOptions<DbConfig> config)
 
     public Task<QuestData> GetByMongoId(string id) =>
         collection.Find(x => x.MongoId == ObjectId.Parse(id)).SingleAsync();
+
+    public Task Update(QuestData data) => collection.ReplaceOneAsync(x => x.MongoId == data.MongoId, data);
 }

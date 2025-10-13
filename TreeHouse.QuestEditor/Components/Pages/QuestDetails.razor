@@ -1,4 +1,7 @@
+@using Microsoft.AspNetCore.Components.Forms
 @using Microsoft.AspNetCore.Components.Web
+@using Microsoft.JSInterop
+@using MongoDB.Bson;
 @using BlazorBootstrap
 @using TreeHouse.QuestEditor.Services
 @using TreeHouse.QuestModels.Elasticsearch
@@ -8,51 +11,76 @@
 
 @inject MongoDbService mongoDbService
 @inject ElasticsearchService elasticService
+@inject IJSRuntime js
 
 @attribute [StreamRendering]
 
 <PageTitle>@data.Name</PageTitle>
 
-<h1 class="mb-5">@data.Name</h1>
+<div class="position-relative">
+    <h1 class="mb-5">@data.Name</h1>
 
-<form class="container">
-    <div class="row mb-3">
-        <label for="input-desc" class="col-2 col-form-label">Description:</label>
-        <div class="col-5">
-            <TextAreaInput id="input-desc" @bind-Value="quest.Desc" Rows="5" Disabled="true" />
+    <EditForm class="container" EditContext="@editContext">
+        <div class="row mb-3">
+            <label for="input-desc" class="col-2 col-form-label">Description:</label>
+            <div class="col-5">
+                <TextAreaInput id="input-desc" @bind-Value="quest.Desc" Rows="5" Disabled="true" />
+            </div>
         </div>
-    </div>
-    <div class="row mb-3">
-        <label for="input-level" class="col-2 col-form-label">Level:</label>
-        <div class="col-5">
-            <NumberInput id="input-level" TValue="int?" @bind-Value="data.Level" />
+        <div class="row mb-3">
+            <label for="input-level" class="col-2 col-form-label">Level:</label>
+            <div class="col-5">
+                <NumberInput id="input-level" TValue="int?" @bind-Value="data.Level" />
+            </div>
         </div>
-    </div>
-    <div class="row mb-3">
-        <label for="input-exp" class="col-2 col-form-label">Exp:</label>
-        <div class="col-5">
-            <NumberInput id="input-exp" TValue="int?" @bind-Value="data.Exp" />
+        <div class="row mb-3">
+            <label for="input-exp" class="col-2 col-form-label">Exp:</label>
+            <div class="col-5">
+                <NumberInput id="input-exp" TValue="int?" @bind-Value="data.Exp" />
+            </div>
         </div>
-    </div>
-    <div class="row mb-3">
-        <label for="input-bits" class="col-2 col-form-label">Bits:</label>
-        <div class="col-5">
-            <NumberInput id="input-bits" TValue="int?" @bind-Value="data.Bits" />
+        <div class="row mb-3">
+            <label for="input-bits" class="col-2 col-form-label">Bits:</label>
+            <div class="col-5">
+                <NumberInput id="input-bits" TValue="int?" @bind-Value="data.Bits" />
+            </div>
         </div>
+    </EditForm>
+
+    <div @ref="saveAnim" class="save-fab save-anim bg-success text-success-emphasis fs-3 rounded-4 position-absolute top-0 end-0 p-1 m-3 text-center">
+        <Icon Name="IconName.FloppyFill" />
     </div>
-</form>
+</div>
 
 @code {
     [Parameter]
     public string Id { get; set; } = null!;
 
+    private ElementReference saveAnim;
+
+    private EditContext editContext = null!;
+
     private QuestData data = new();
 
     private Quest quest = new();
+
+    protected override void OnInitialized()
+    {
+        editContext = new EditContext(data);
+    }
 
     protected override async Task OnParametersSetAsync()
     {
         data = await mongoDbService.GetByMongoId(Id);
         quest = await elasticService.GetQuestById(data.Id);
+
+        editContext = new EditContext(data);
+        editContext.OnFieldChanged += async (s, e) => {
+            if (data.MongoId != ObjectId.Empty && editContext.Validate())
+            {
+                await mongoDbService.Update(data);
+                await js.InvokeVoidAsync("olResetAnimation", saveAnim);
+            }
+        };
     }
 }
