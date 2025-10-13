@@ -9,7 +9,9 @@
     <base href="/" />
     <script>
         (function() {
-            const isDark = window.matchMedia?.('(prefers-color-scheme: dark)').matches;
+            let invert = null;
+            try { invert = localStorage.getItem('invert'); } catch {}
+            const isDark = window.matchMedia?.('(prefers-color-scheme: dark)').matches != !!invert;
             document.documentElement.setAttribute('data-bs-theme', isDark ? 'dark' : 'light');
         })();
     </script>
@@ -38,6 +40,13 @@
         function olSwitchTheme() {
             const isDark = document.documentElement.getAttribute('data-bs-theme') == 'dark';
             document.documentElement.setAttribute('data-bs-theme', isDark ? 'light' : 'dark');
+            try { 
+                if (localStorage.getItem('invert'))
+                    localStorage.removeItem('invert');
+                else
+                    localStorage.setItem('invert', 'yes');
+            }
+            catch {}
         }
     </script>
 </body>
