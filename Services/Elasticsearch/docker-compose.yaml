@@ -1,0 +1,32 @@
+services:
+  setup:
+    image: elasticsearch:9.1.5
+    profiles:
+      - setup
+    command: >
+      bash -c '
+        until curl -s -X POST -u "elastic:${ELASTIC_PASSWORD:-YouShouldReallyChangeThis}" -H "Content-Type: application/json" http://elasticsearch:9200/_security/user/kibana_system/_password -d "{\"password\":\"${KIBANA_PASSWORD:-CreateAnEnvFileAndChangeThis}\"}" | grep -q "^{}"; do sleep 10; done;
+      '
+
+  elasticsearch:
+    image: elasticsearch:9.1.5
+    environment:
+      discovery.type: single-node
+      xpack.security.http.ssl.enabled: false
+      ELASTIC_PASSWORD: ${ELASTIC_PASSWORD:-YouShouldReallyChangeThis}
+    ports:
+      - 127.0.0.1:9200:9200
+    volumes:
+      - elastic_data:/usr/share/elasticsearch/data
+
+  kibana:
+    image: kibana:9.1.5
+    environment:
+      ELASTICSEARCH_HOSTS: http://elasticsearch:9200
+      ELASTICSEARCH_USERNAME: kibana_system
+      ELASTICSEARCH_PASSWORD: ${KIBANA_PASSWORD:-CreateAnEnvFileAndChangeThis}
+    ports:
+      - 127.0.0.1:5601:5601
+
+volumes:
+  elastic_data:
