@@ -25,5 +25,7 @@ public class QuestData
 
     public List<string> Rewards { get; set; } = null!;
 
+    public List<DialogData> Dialogs { get; set; } = null!;
+
     public string Comments { get; set; } = "";
 }
