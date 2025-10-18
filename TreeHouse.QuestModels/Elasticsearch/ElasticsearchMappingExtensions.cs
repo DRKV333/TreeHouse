@@ -7,7 +7,7 @@ namespace TreeHouse.QuestModels.Elasticsearch;
 
 internal static class ElasticsearchMappingExtensions
 {
-    public static PropertiesDescriptor<T> TextEnglishWithKeyword<T>(this PropertiesDescriptor<T> desc, Expression<Func<T, object>> propertyName) => desc
+    public static PropertiesDescriptor<T> TextEnglishWithKeyword<T>(this PropertiesDescriptor<T> desc, Expression<Func<T, object?>> propertyName) => desc
         .Text(propertyName, p => p
             .Fielddata()
             .Analyzer("english")
@@ -16,13 +16,13 @@ internal static class ElasticsearchMappingExtensions
             )
         );
 
-    public static PropertiesDescriptor<T> TextEnglish<T>(this PropertiesDescriptor<T> desc, Expression<Func<T, object>> propertyName) => desc
+    public static PropertiesDescriptor<T> TextEnglish<T>(this PropertiesDescriptor<T> desc, Expression<Func<T, object?>> propertyName) => desc
         .Text(propertyName, p => p
             .Fielddata()
             .Analyzer("english")
         );
 
-    public static PropertiesDescriptor<T> IdKeywordWithNumber<T>(this PropertiesDescriptor<T> desc, Expression<Func<T, object>> propertyName) => desc
+    public static PropertiesDescriptor<T> IdKeywordWithNumber<T>(this PropertiesDescriptor<T> desc, Expression<Func<T, object?>> propertyName) => desc
         .Keyword(propertyName, p => p
             .Fields(f => f
                 .IntegerNumber("number")

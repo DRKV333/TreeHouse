@@ -12,7 +12,7 @@ using Microsoft.Data.Sqlite;
 using TreeHouse.Common;
 using TreeHouse.Common.CommandLine;
 using TreeHouse.ImageFeatures;
-using TreeHouse.QuestModels;
+using TreeHouse.QuestModels.Elasticsearch;
 
 await new RootCommand()
 {
@@ -199,8 +199,9 @@ static async Task SearchImages(string elasticUrl, int size, FileInfo image)
     ElasticsearchClient client = CreateClient(elasticUrl);
 
     SearchResponse<Image> response = await client.SearchAsync<Image>(s => s
+        .Indices(Indices.Index<Image>())
         .Knn(k => k
-            .k(size)
+            .K(size)
             .Field(x => x.Features)
             .QueryVector(features)
         )

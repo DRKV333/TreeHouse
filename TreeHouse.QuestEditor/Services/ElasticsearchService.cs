@@ -18,7 +18,7 @@ internal class ElasticsearchService(IOptions<DbConfig> config)
     public async Task<Quest> GetQuestById(long id)
     {
         SearchResponse<Quest> response = await client.SearchAsync<Quest>(s => s
-            .Index(Indices.Index<Quest>())
+            .Indices(Indices.Index<Quest>())
             .Query(q => q
                 .Match(m => m
                     .Field(x => x.Id)

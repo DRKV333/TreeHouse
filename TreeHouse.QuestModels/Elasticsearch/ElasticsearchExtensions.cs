@@ -3,6 +3,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Elastic.Clients.Elasticsearch;
 using Elastic.Clients.Elasticsearch.IndexManagement;
+using Elastic.Clients.Elasticsearch.Mapping;
 using Elastic.Transport.Products.Elasticsearch;
 
 namespace TreeHouse.QuestModels.Elasticsearch;
@@ -72,9 +73,9 @@ public static class ElasticsearchExtensions
             .Properties(p => p
                 .Keyword(x => x.FileName)
                 .DenseVector(x => x.Features, v => v
-                    .ElementType("float")
+                    .ElementType(DenseVectorElementType.Float)
                     .Dims(featureDims)
-                    .Similarity("l2_norm")
+                    .Similarity(DenseVectorSimilarity.L2Norm)
                 )
             )
         );
