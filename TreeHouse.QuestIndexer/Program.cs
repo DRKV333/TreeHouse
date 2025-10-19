@@ -9,10 +9,13 @@ using System.Threading.Tasks;
 using Elastic.Clients.Elasticsearch;
 using Elastic.Clients.Elasticsearch.Core.Search;
 using Microsoft.Data.Sqlite;
+using MongoDB.Bson;
+using MongoDB.Driver;
 using TreeHouse.Common;
 using TreeHouse.Common.CommandLine;
 using TreeHouse.ImageFeatures;
 using TreeHouse.QuestModels.Elasticsearch;
+using TreeHouse.QuestModels.Mongo;
 
 await new RootCommand()
 {
@@ -37,25 +40,34 @@ await new RootCommand()
     {
         new Option<int>("--size").Default(5),
         new Argument<FileInfo>("image").ExistingOnly().Arity(ArgumentArity.ExactlyOne)
-    }.WithHandler(SearchImages)
+    }.WithHandler(SearchImages),
+
+    new Command("import-data")
+    {
+        new Option<string>(["-m", "--mongo-url"]).Required(),
+        new Option<FileInfo>(["-s", "--source"]).ExistingOnly().Required()
+    }.WithHandler(ImportData),
+    new Command("export-data")
+    {
+        new Option<string>(["-m", "--mongo-url"]).Required(),
+        new Option<FileInfo>(["-t", "--target"]).Required()
+    }.WithHandler(ExportData)
 }
 .WithGlobalOption(new Option<string>(["-e", "--elastic-url"]).Required())
 .InvokeAsync(args);
 
 static async Task DeleteIndex<T>(string elasticUrl)
 {
-    ElasticsearchClient client = CreateClient(elasticUrl);
+    ElasticsearchClient client = CreateElasticClient(elasticUrl);
     Console.WriteLine(await client.Indices.DeleteAsync<T>());
 }
 
-static ElasticsearchClient CreateClient(string elasticUrl)
-{
-    return new ElasticsearchClient(new ElasticsearchClientSettings(new Uri(elasticUrl)).ConfigureQuestModels());
-}
+static ElasticsearchClient CreateElasticClient(string elasticUrl) =>
+    new ElasticsearchClient(new ElasticsearchClientSettings(new Uri(elasticUrl)).ConfigureQuestModels());
 
 static async Task IndexQuests(string elasticUrl, FileInfo source)
 {
-    ElasticsearchClient client = CreateClient(elasticUrl);
+    ElasticsearchClient client = CreateElasticClient(elasticUrl);
 
     await client.Indices.CreateAsync<Quest>(i => i.CreateQuest())
         .CheckSuccess($"creating index {Quest.IndexName}");
@@ -109,7 +121,7 @@ static async Task IndexQuests(string elasticUrl, FileInfo source)
 
 static async Task IndexDialogs(string elasticUrl, FileInfo source)
 {
-    ElasticsearchClient client = CreateClient(elasticUrl);
+    ElasticsearchClient client = CreateElasticClient(elasticUrl);
 
     await client.Indices.CreateAsync<Dialog>(i => i.CreateDialog())
         .CheckSuccess($"creating index {Dialog.IndexName}");
@@ -145,7 +157,7 @@ static async Task IndexDialogs(string elasticUrl, FileInfo source)
 
 static async Task IndexImages(string elasticUrl, DirectoryInfo source)
 {
-    ElasticsearchClient client = CreateClient(elasticUrl);
+    ElasticsearchClient client = CreateElasticClient(elasticUrl);
 
     await client.Indices.CreateAsync<Image>(i => i.CreateImage(ImageFeatureExtractor.FeaturesDim))
         .CheckSuccess($"creating index {Image.IndexName}");
@@ -196,7 +208,7 @@ static async Task SearchImages(string elasticUrl, int size, FileInfo image)
     await extractor.SetInputImage(fileStream, 0);
     float[] features = (await extractor.GetFeatures())[0];
 
-    ElasticsearchClient client = CreateClient(elasticUrl);
+    ElasticsearchClient client = CreateElasticClient(elasticUrl);
 
     SearchResponse<Image> response = await client.SearchAsync<Image>(s => s
         .Indices(Indices.Index<Image>())
@@ -216,4 +228,72 @@ static async Task SearchImages(string elasticUrl, int size, FileInfo image)
     {
         Console.WriteLine($"{hit.Score} {((JsonElement)hit.Fields!.Values.First())[0]}");
     }
+}
+
+static async Task ImportData(string elasticUrl, string mongoUrl, FileInfo source)
+{
+    List<QuestData> questDatas;
+    using (Stream fs = source.OpenRead())
+    {
+        questDatas = (await JsonSerializer.DeserializeAsync<List<QuestData>>(fs))!;
+    }
+
+    ElasticsearchClient elasticClient = CreateElasticClient(elasticUrl);
+
+    int order = 0;
+    foreach (QuestData questData in questDatas)
+    {
+        questData.MongoId = ObjectId.GenerateNewId();
+
+        questData.Order = order++;
+
+        SearchResponse<Quest> search = await elasticClient.SearchAsync<Quest>(s => s
+            .Indices(Indices.Index<Quest>())
+            .Query(q => q
+                .Match(m => m
+                    .Field(x => x.Id)
+                    .Query(questData.Id)
+                )
+            )
+            .Size(1)
+            .Source(false)
+            .DocvalueFields(
+                f => f.Field(x => x.Name.Suffix("keyword"))
+            )
+        ).CheckSuccess();
+
+        if (search.Hits.Count == 0)
+            Console.WriteLine($"Did not find quest with id {questData.Id} in elastic!");
+        else
+            questData.Name = search.Hits.First().GetFieldValues<Quest, string>("name.keyword").Single();
+    }
+
+    using MongoClient mongoClient = new(mongoUrl);
+    IMongoCollection<QuestData> collection = mongoClient.GetQuestDataCollection();
+
+    await collection.InsertManyAsync(questDatas);
+
+    Console.WriteLine($"Imported {questDatas.Count} quests.");
+
+    await collection.Indexes.CreateOneAsync(
+        new CreateIndexModel<QuestData>(
+            Builders<QuestData>.IndexKeys.Ascending(x => x.Order)
+        )
+    );
+}
+
+static async Task ExportData(string elasticUrl, string mongoUrl, FileInfo target)
+{
+    using MongoClient client = new(mongoUrl);
+    IMongoCollection<QuestData> collection = client.GetQuestDataCollection();
+
+    List<QuestData> questDatas = await collection
+        .Find(_ => true)
+        .SortBy(x => x.Order)
+        .ToListAsync();
+
+    using Stream fs = target.Create();
+    await JsonSerializer.SerializeAsync(fs, questDatas, new JsonSerializerOptions() { WriteIndented = true });
+
+    Console.WriteLine($"Exported {questDatas.Count} quests.");
 }

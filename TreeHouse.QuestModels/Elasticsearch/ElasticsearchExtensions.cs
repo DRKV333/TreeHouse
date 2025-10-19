@@ -1,7 +1,12 @@
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Elastic.Clients.Elasticsearch;
+using Elastic.Clients.Elasticsearch.Core.Search;
 using Elastic.Clients.Elasticsearch.IndexManagement;
 using Elastic.Clients.Elasticsearch.Mapping;
 using Elastic.Transport.Products.Elasticsearch;
@@ -36,6 +41,11 @@ public static class ElasticsearchExtensions
     {
         return CheckSuccess(await responseTask, operation);
     }
+
+    private static readonly JsonSerializerOptions fieldValuesOptions = new() { NumberHandling = JsonNumberHandling.AllowReadingFromString };
+
+    public static IEnumerable<TField> GetFieldValues<TDoc, TField>(this Hit<TDoc> hit, string name) =>
+        ((JsonElement)hit.Fields![name]).EnumerateArray().Select(x => x.Deserialize<TField>(fieldValuesOptions)!);
 
     public static ElasticsearchClientSettings ConfigureQuestModels(this ElasticsearchClientSettings settings) => settings
         .DisableDirectStreaming()
