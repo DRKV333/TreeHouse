@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
@@ -7,12 +8,17 @@ using TreeHouse.QuestModels.Mongo;
 
 namespace TreeHouse.QuestEditor.Services;
 
-internal class MongoDbService(IOptions<DbConfig> config)
+internal sealed class MongoDbService : IDisposable
 {
-    private readonly IMongoCollection<QuestData> collection =
-        new MongoClient(config.Value.MongoUrl)
-        .GetDatabase("ol-questdata")
-        .GetCollection<QuestData>("quests");
+    private readonly MongoClient client;
+
+    private readonly IMongoCollection<QuestData> collection;
+
+    public MongoDbService(IOptions<DbConfig> config)
+    {
+        client = new MongoClient(config.Value.MongoUrl);
+        collection = client.GetQuestDataCollection();
+    }
 
     public IAsyncEnumerable<QuestNavItem> GetAllNavItems() => collection
         .Find(_ => true)
@@ -31,4 +37,9 @@ internal class MongoDbService(IOptions<DbConfig> config)
         collection.Find(x => x.MongoId == ObjectId.Parse(id)).SingleAsync();
 
     public Task Update(QuestData data) => collection.ReplaceOneAsync(x => x.MongoId == data.MongoId, data);
+
+    public void Dispose()
+    {
+        client.Dispose();
+    }
 }

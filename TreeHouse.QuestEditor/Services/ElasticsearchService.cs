@@ -2,7 +2,6 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Elastic.Clients.Elasticsearch;
-using Elastic.Clients.Elasticsearch.Core.Search;
 using Microsoft.Extensions.Options;
 using TreeHouse.QuestModels.Elasticsearch;
 
@@ -26,7 +25,7 @@ internal class ElasticsearchService(IOptions<DbConfig> config)
                 )
             )
             .Size(1)
-            .Source(new SourceConfig(true))
+            .Source(true)
         ).CheckSuccess();
 
         if (response.Hits.Count == 0)
