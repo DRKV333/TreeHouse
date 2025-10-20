@@ -12,7 +12,7 @@ internal static class ElasticsearchMappingExtensions
             .Fielddata()
             .Analyzer("english")
             .Fields(f => f
-                .Keyword("keyword")
+                .Keyword(Suffix.Keyword)
             )
         );
 
@@ -25,7 +25,7 @@ internal static class ElasticsearchMappingExtensions
     public static PropertiesDescriptor<T> IdKeywordWithNumber<T>(this PropertiesDescriptor<T> desc, Expression<Func<T, object?>> propertyName) => desc
         .Keyword(propertyName, p => p
             .Fields(f => f
-                .IntegerNumber("number")
+                .IntegerNumber(Suffix.Number)
             )
         );
 

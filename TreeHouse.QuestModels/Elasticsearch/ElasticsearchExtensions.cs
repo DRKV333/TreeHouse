@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -44,8 +46,8 @@ public static class ElasticsearchExtensions
 
     private static readonly JsonSerializerOptions fieldValuesOptions = new() { NumberHandling = JsonNumberHandling.AllowReadingFromString };
 
-    public static IEnumerable<TField> GetFieldValues<TDoc, TField>(this Hit<TDoc> hit, string name) =>
-        ((JsonElement)hit.Fields![name]).EnumerateArray().Select(x => x.Deserialize<TField>(fieldValuesOptions)!);
+    public static IEnumerable<TField> GetFieldValues<TDoc, TField>(this Hit<TDoc> hit, Inferrer inferrer, Expression<Func<TDoc, TField>> expression) =>
+        ((JsonElement)hit.Fields![inferrer.Field(Infer.Field(expression))]).EnumerateArray().Select(x => x.Deserialize<TField>(fieldValuesOptions)!);
 
     public static ElasticsearchClientSettings ConfigureQuestModels(this ElasticsearchClientSettings settings) => settings
         .DisableDirectStreaming()
