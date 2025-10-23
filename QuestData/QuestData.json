@@ -4340,7 +4340,7 @@
     "Comments": "Possible quests: Danger zone, World Quest: Danger Zone, Livestock In Danger\n"
   },
   {
-    "Id": 2663,
+    "Id": 1719,
     "Level": 19,
     "Category": "main",
     "Exp": 33000,
@@ -6276,7 +6276,7 @@
     "Comments": "Possible quests: To the Oyster House, The old house, Guiding The Horse\n"
   },
   {
-    "Id": 1686,
+    "Id": 1532,
     "Level": 24,
     "Category": "main",
     "Exp": 41000,
@@ -10799,7 +10799,7 @@
     "Comments": "Possible quests: Ritual of time, Ritual, Ritual complete\n"
   },
   {
-    "Id": 2663,
+    "Id": 1653,
     "Level": 44,
     "Category": "main",
     "Exp": 810000,
@@ -11853,7 +11853,7 @@
     "Comments": "Possible quests: In the army now, Food for the army, Demon army\n"
   },
   {
-    "Id": 38,
+    "Id": 1804,
     "Level": 46,
     "Category": "main",
     "Exp": 280000,
@@ -12650,7 +12650,7 @@
     "Comments": "Possible quests: All is done, Not all?, Lambda Mall allies\n"
   },
   {
-    "Id": 2597,
+    "Id": 1822,
     "Level": 47,
     "Category": "main",
     "Exp": 330000,
@@ -13810,7 +13810,7 @@
     "Comments": "Possible quests: Wounded soldiers, Wounded rebellion, Tend the wounds\n"
   },
   {
-    "Id": 2129,
+    "Id": 1930,
     "Level": 50,
     "Category": "main",
     "Exp": 410000,
@@ -14124,7 +14124,7 @@
     "Comments": "Possible quests: Spy on the spy, Spy, World Quest: Spy On Spy\n"
   },
   {
-    "Id": 1711,
+    "Id": 1461,
     "Level": 51,
     "Category": "main",
     "Exp": 630000,
@@ -15343,7 +15343,7 @@
     "Comments": "Possible quests: Clear it!, Clearing The Road, Clearing The Path\n"
   },
   {
-    "Id": 3072,
+    "Id": 2008,
     "Level": 53,
     "Category": "main",
     "Exp": 277500,
@@ -15472,7 +15472,7 @@
     "Comments": "Possible quests: The sacrifice, Metal sacrifice, Ritual sacrifice\n"
   },
   {
-    "Id": 1925,
+    "Id": 2011,
     "Level": 53,
     "Category": "main",
     "Exp": 832500,
@@ -15575,7 +15575,7 @@
     "Comments": "Possible quests: More soldiers!, Soldier code, Wounded soldiers\n"
   },
   {
-    "Id": 1933,
+    "Id": 2055,
     "Level": 54,
     "Category": "main",
     "Exp": 375000,
@@ -16820,7 +16820,7 @@
     "Comments": "Possible quests: The journey begins, Journey, The war begins!\n"
   },
   {
-    "Id": 1739,
+    "Id": 2053,
     "Level": 56,
     "Category": "main",
     "Exp": 750000,
@@ -20176,7 +20176,7 @@
     "Comments": "Possible quests: Enough is enough, Not enough work\n"
   },
   {
-    "Id": 2067,
+    "Id": 2118,
     "Level": 60,
     "Category": "main",
     "Exp": 1500000,
@@ -21255,7 +21255,7 @@
     "Comments": "Possible quests: Where to now?, Where they rest, Where is CyberNutz?\n"
   },
   {
-    "Id": 27,
+    "Id": 7,
     "Level": 60,
     "Category": "main",
     "Exp": 1500000,
@@ -21290,7 +21290,7 @@
     "Comments": "Possible quests: Something is coming, Something is coming, Something Sticky This Way Comes\n"
   },
   {
-    "Id": 1536,
+    "Id": 8,
     "Level": 60,
     "Category": "main",
     "Exp": 1500000,
@@ -21325,7 +21325,7 @@
     "Comments": "Possible quests: Other side, The other side, The other side\n"
   },
   {
-    "Id": 29,
+    "Id": 9,
     "Level": 60,
     "Category": "main",
     "Exp": 3000000,
@@ -21352,7 +21352,7 @@
     "Comments": "Possible quests: The palace unlocked, The palace unlocked, To the palace\n"
   },
   {
-    "Id": 30,
+    "Id": 10,
     "Level": 60,
     "Category": "main",
     "Exp": 1500000,
@@ -21379,7 +21379,7 @@
     "Comments": "Possible quests: Leave, now!, Leave, now!, Leave it behind\n"
   },
   {
-    "Id": 31,
+    "Id": 11,
     "Level": 60,
     "Category": "main",
     "Exp": 3000000,
@@ -21406,7 +21406,7 @@
     "Comments": "Possible quests: Before we lose, Before we lose, Are we there?\n"
   },
   {
-    "Id": 32,
+    "Id": 12,
     "Level": 60,
     "Category": "main",
     "Exp": 1500000,
@@ -21441,7 +21441,7 @@
     "Comments": "Possible quests: Just in time, Just in time, Just Like Ants\n"
   },
   {
-    "Id": 36,
+    "Id": 14,
     "Level": 60,
     "Category": "main",
     "Exp": 3000000,
@@ -21472,7 +21472,7 @@
     "Comments": "Possible quests: Extinguish the isle, Extinguish the isle, Extinguished fire\n"
   },
   {
-    "Id": 34,
+    "Id": 13,
     "Level": 60,
     "Category": "main",
     "Exp": 4500000,
@@ -21503,7 +21503,7 @@
     "Comments": "Possible quests: Evacuate, Evacuate, Evacuate\n"
   },
   {
-    "Id": 65,
+    "Id": 15,
     "Level": 60,
     "Category": "main",
     "Exp": 3000000,
@@ -21530,7 +21530,7 @@
     "Comments": "Possible quests: Allies in time of need, Allies in time of need, Need more time\n"
   },
   {
-    "Id": 69,
+    "Id": 16,
     "Level": 60,
     "Category": "main",
     "Exp": 3000000,
@@ -21561,7 +21561,7 @@
     "Comments": "Possible quests: Into battle, Into battle, The heart of battle\n"
   },
   {
-    "Id": 70,
+    "Id": 17,
     "Level": 60,
     "Category": "main",
     "Exp": 1500000,
@@ -21612,7 +21612,7 @@
     "Comments": "Possible quests: Planning ahead, Planning ahead, Path ahead\n"
   },
   {
-    "Id": 71,
+    "Id": 18,
     "Level": 60,
     "Category": "main",
     "Exp": 4500000,
@@ -22116,7 +22116,7 @@
     "Comments": "Possible quests: Earning a place, Earn the favor, The last place\n"
   },
   {
-    "Id": 1709,
+    "Id": 2192,
     "Level": 60,
     "Category": "main",
     "Exp": 1500000,
@@ -22188,7 +22188,7 @@
     "Comments": "Possible quests: Hear It Out, Head out!, Cut the head\n"
   },
   {
-    "Id": 1797,
+    "Id": 2194,
     "Level": 60,
     "Category": "main",
     "Exp": 4500000,
@@ -23068,7 +23068,7 @@
     "Comments": "Possible quests: Ancient riddles, Ancient temples, Ancient knowledge\n"
   },
   {
-    "Id": 2029,
+    "Id": 2178,
     "Level": 60,
     "Category": "main",
     "Exp": 4500000,
@@ -23381,7 +23381,7 @@
     "Comments": "Possible quests: Trapping the snake, It\u0027s a trap, It\u0027s not a trap\n"
   },
   {
-    "Id": 1837,
+    "Id": 2161,
     "Level": 60,
     "Category": "main",
     "Exp": 1500000,
@@ -23799,7 +23799,7 @@
     "Comments": "Possible quests: Call For Support, Subportal glitches, Not all?\n"
   },
   {
-    "Id": 1882,
+    "Id": 2205,
     "Level": 60,
     "Category": "main",
     "Exp": 1500000,
@@ -24149,7 +24149,7 @@
     "Comments": "Possible quests: Stealing Resources, Resources, Steal memory\n"
   },
   {
-    "Id": 2088,
+    "Id": 2220,
     "Level": 60,
     "Category": "main",
     "Exp": 1500000,
@@ -24204,7 +24204,7 @@
     "Comments": "Possible quests: To the palace, The Palace, Celestial palace\n"
   },
   {
-    "Id": 1797,
+    "Id": 2221,
     "Level": 60,
     "Category": "main",
     "Exp": 1500000,
@@ -24491,7 +24491,7 @@
     "Comments": "Possible quests: Only Two Left, Two bishops, And A One. And A Two...\n"
   },
   {
-    "Id": 2238,
+    "Id": 2230,
     "Level": 60,
     "Category": "main",
     "Exp": 4500000,
@@ -25324,7 +25324,7 @@
     "Comments": "Possible quests: Dread\u0027s bastion, Dread, Missing in action\n"
   },
   {
-    "Id": 2108,
+    "Id": 2683,
     "Level": null,
     "Category": "ce",
     "Exp": 760000,
@@ -26712,7 +26712,7 @@
     "Comments": "Possible quests: Monk defences, The well of the monks, Monks retreat\n"
   },
   {
-    "Id": 1899,
+    "Id": 2188,
     "Level": 37,
     "Category": "side",
     "Exp": 60000,
@@ -26932,7 +26932,7 @@
     "Comments": ""
   },
   {
-    "Id": 2083,
+    "Id": 1700,
     "Level": 45,
     "Category": "side",
     "Exp": 825000,
@@ -31054,38 +31054,7 @@
     "Comments": "Possible quests: Rescue mission, The rescue, The Rescue\n"
   },
   {
-    "Id": 1423,
-    "Level": 2,
-    "Category": "historic",
-    "Exp": 67,
-    "Bits": 9,
-    "Rewards": [],
-    "Dialogs": [
-      {
-        "Lines": [
-          {
-            "Id": 8136,
-            "Responses": 4
-          },
-          {
-            "Id": 8137,
-            "Responses": 4
-          }
-        ]
-      },
-      {
-        "Lines": [
-          {
-            "Id": 8139,
-            "Responses": 4
-          }
-        ]
-      }
-    ],
-    "Comments": "Possible quests: Extracting shadows, In the shadow, Poison sample extraction\n"
-  },
-  {
-    "Id": 1760,
+    "Id": 1422,
     "Level": 1,
     "Category": "historic",
     "Exp": 35,
@@ -31120,6 +31089,37 @@
       }
     ],
     "Comments": "Possible quests: Gatherer, The gathering, Gathering essentials\n"
+  },
+  {
+    "Id": 1423,
+    "Level": 2,
+    "Category": "historic",
+    "Exp": 67,
+    "Bits": 9,
+    "Rewards": [],
+    "Dialogs": [
+      {
+        "Lines": [
+          {
+            "Id": 8136,
+            "Responses": 4
+          },
+          {
+            "Id": 8137,
+            "Responses": 4
+          }
+        ]
+      },
+      {
+        "Lines": [
+          {
+            "Id": 8139,
+            "Responses": 4
+          }
+        ]
+      }
+    ],
+    "Comments": "Possible quests: Extracting shadows, In the shadow, Poison sample extraction\n"
   },
   {
     "Id": 1424,
