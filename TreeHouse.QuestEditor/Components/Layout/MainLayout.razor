@@ -58,7 +58,7 @@
             if (category != item.Category)
             {
                 category = item.Category;
-                groupId = "navgroup-" + item.Category;
+                groupId = $"navgroup-{item.Category}-{Random.Shared.Next()}";
 
                 yield return new NavItem()
                 {
