@@ -265,7 +265,7 @@ static async Task ImportData(string elasticUrl, string mongoUrl, FileInfo source
         if (search.Hits.Count == 0)
             Console.WriteLine($"Did not find quest with id {questData.Id} in elastic!");
         else
-            questData.Name = search.Hits.First().GetFieldValues(elasticClient.Infer, x => (string)x.Name.Suffix(Suffix.Keyword)).Single();
+            questData.Name = search.Hits.First().GetFieldValues(elasticClient, x => (string)x.Name.Suffix(Suffix.Keyword)).Single();
     }
 
     using MongoClient mongoClient = new(mongoUrl);

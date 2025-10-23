@@ -22,6 +22,12 @@
 
     <EditForm class="container" EditContext="@editContext">
         <div class="row mb-3">
+            <label for="input-name" class="col-2 col-form-label">Name:</label>
+            <div class="col-5">
+                <ElasticAutoComplete id="input-name" SearchDelegate="elasticService.AutoCompleteQuestName" @bind-TextValue="data.Name" @bind-IdValue="data.Id" />
+            </div>
+        </div>
+        <div class="row mb-3">
             <label for="input-desc" class="col-2 col-form-label">Description:</label>
             <div class="col-5">
                 <TextAreaInput id="input-desc" @bind-Value="quest.Desc" Rows="5" Disabled="true" />
@@ -72,7 +78,9 @@
     protected override async Task OnParametersSetAsync()
     {
         data = await mongoDbService.GetByMongoId(Id);
-        quest = await elasticService.GetQuestById(data.Id);
+        StateHasChanged();
+
+        await FetchElasticQuest();
 
         editContext = new EditContext(data);
         editContext.OnFieldChanged += async (s, e) => {
@@ -80,7 +88,18 @@
             {
                 await mongoDbService.Update(data);
                 await js.InvokeVoidAsync("olResetAnimation", saveAnim);
+
+                if (e.FieldIdentifier.Model == data && e.FieldIdentifier.FieldName == nameof(data.Id))
+                {
+                    await FetchElasticQuest();
+                    StateHasChanged();
+                }
             }
         };
+    }
+
+    private async Task FetchElasticQuest()
+    {
+        quest = await elasticService.GetQuestById(data.Id);
     }
 }

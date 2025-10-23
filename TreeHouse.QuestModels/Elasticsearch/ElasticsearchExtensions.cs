@@ -46,8 +46,8 @@ public static class ElasticsearchExtensions
 
     private static readonly JsonSerializerOptions fieldValuesOptions = new() { NumberHandling = JsonNumberHandling.AllowReadingFromString };
 
-    public static IEnumerable<TField> GetFieldValues<TDoc, TField>(this Hit<TDoc> hit, Inferrer inferrer, Expression<Func<TDoc, TField>> expression) =>
-        ((JsonElement)hit.Fields![inferrer.Field(Infer.Field(expression))]).EnumerateArray().Select(x => x.Deserialize<TField>(fieldValuesOptions)!);
+    public static IEnumerable<TField> GetFieldValues<TDoc, TField>(this Hit<TDoc> hit, ElasticsearchClient client, Expression<Func<TDoc, TField>> expression) =>
+        ((JsonElement)hit.Fields![client.Infer.Field(Infer.Field(expression))]).EnumerateArray().Select(x => x.Deserialize<TField>(fieldValuesOptions)!);
 
     public static ElasticsearchClientSettings ConfigureQuestModels(this ElasticsearchClientSettings settings) => settings
         .DisableDirectStreaming()
