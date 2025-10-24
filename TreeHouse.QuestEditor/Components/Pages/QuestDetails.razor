@@ -51,6 +51,12 @@
                 <NumberInput id="input-bits" TValue="int?" @bind-Value="data.Bits" />
             </div>
         </div>
+        <div class="row mb-3">
+            <label for="input-comments" class="col-2 col-form-label">Comments:</label>
+            <div class="col-5">
+                <TextAreaInput id="input-comments" @bind-Value="data.Comments" Rows="5" />
+            </div>
+        </div>
     </EditForm>
 
     <div @ref="saveAnim" class="save-fab save-anim bg-success text-success-emphasis fs-3 rounded-4 position-absolute top-0 end-0 p-1 m-3 text-center">
