@@ -45,7 +45,8 @@ await new RootCommand()
     new Command("import-data")
     {
         new Option<string>(["-m", "--mongo-url"]).Required(),
-        new Option<FileInfo>(["-s", "--source"]).ExistingOnly().Required()
+        new Option<FileInfo>(["-s", "--source"]).ExistingOnly().Required(),
+        new Option<bool>("--allow-existing").Default(false)
     }.WithHandler(ImportData),
     new Command("export-data")
     {
@@ -230,8 +231,26 @@ static async Task SearchImages(string elasticUrl, int size, FileInfo image)
     }
 }
 
-static async Task ImportData(string elasticUrl, string mongoUrl, FileInfo source)
+static async Task ImportData(string elasticUrl, string mongoUrl, FileInfo source, bool allowExisting)
 {
+    using MongoClient mongoClient = new(mongoUrl);
+    IMongoCollection<QuestData> collection = mongoClient.GetQuestDataCollection();
+
+    AggregateCountResult? countResult = await collection.Aggregate()
+        .Limit(1)
+        .Count()
+        .SingleOrDefaultAsync();
+
+    if (countResult?.Count > 0)
+    {
+        Console.WriteLine("There are existing documents in the MongoDB collection.");
+        if (!allowExisting)
+        {
+            Console.WriteLine("Aborting! Use '--allow-existing' if you really want to do this.");
+            return;
+        }
+    }
+
     List<QuestData> questDatas;
     using (Stream fs = source.OpenRead())
     {
@@ -267,9 +286,6 @@ static async Task ImportData(string elasticUrl, string mongoUrl, FileInfo source
         else
             questData.Name = search.Hits.First().GetFieldValues(elasticClient, x => (string)x.Name.Suffix(Suffix.Keyword)).Single();
     }
-
-    using MongoClient mongoClient = new(mongoUrl);
-    IMongoCollection<QuestData> collection = mongoClient.GetQuestDataCollection();
 
     await collection.InsertManyAsync(questDatas);
 
