@@ -24831,7 +24831,7 @@
   },
   {
     "Id": 2345,
-    "Level": null,
+    "Level": 60,
     "Category": "ce",
     "Exp": 9,
     "Bits": 2,
@@ -24866,7 +24866,7 @@
   },
   {
     "Id": 2649,
-    "Level": null,
+    "Level": 60,
     "Category": "ce",
     "Exp": 755000,
     "Bits": 660,
@@ -24929,7 +24929,7 @@
   },
   {
     "Id": 2654,
-    "Level": null,
+    "Level": 60,
     "Category": "ce",
     "Exp": 755000,
     "Bits": 660,
@@ -24976,7 +24976,7 @@
   },
   {
     "Id": 2655,
-    "Level": null,
+    "Level": 60,
     "Category": "ce",
     "Exp": 377500,
     "Bits": 132,
@@ -24999,7 +24999,7 @@
   },
   {
     "Id": 2656,
-    "Level": null,
+    "Level": 60,
     "Category": "ce",
     "Exp": 755000,
     "Bits": 660,
@@ -25036,7 +25036,7 @@
   },
   {
     "Id": 2657,
-    "Level": null,
+    "Level": 60,
     "Category": "ce",
     "Exp": 1500000,
     "Bits": 672,
@@ -25067,7 +25067,7 @@
   },
   {
     "Id": 2680,
-    "Level": null,
+    "Level": 60,
     "Category": "ce",
     "Exp": 750000,
     "Bits": 134,
@@ -25102,7 +25102,7 @@
   },
   {
     "Id": 2681,
-    "Level": null,
+    "Level": 60,
     "Category": "ce",
     "Exp": 750000,
     "Bits": 134,
@@ -25133,7 +25133,7 @@
   },
   {
     "Id": 2660,
-    "Level": null,
+    "Level": 60,
     "Category": "ce",
     "Exp": 1500000,
     "Bits": 672,
@@ -25168,7 +25168,7 @@
   },
   {
     "Id": 2659,
-    "Level": null,
+    "Level": 60,
     "Category": "ce",
     "Exp": 2250000,
     "Bits": 806,
@@ -25199,7 +25199,7 @@
   },
   {
     "Id": 2658,
-    "Level": null,
+    "Level": 60,
     "Category": "ce",
     "Exp": 1500000,
     "Bits": 672,
@@ -25230,7 +25230,7 @@
   },
   {
     "Id": 2682,
-    "Level": null,
+    "Level": 60,
     "Category": "ce",
     "Exp": 750000,
     "Bits": 134,
@@ -25259,7 +25259,7 @@
   },
   {
     "Id": 2663,
-    "Level": null,
+    "Level": 60,
     "Category": "ce",
     "Exp": 1520000,
     "Bits": 684,
@@ -25290,7 +25290,7 @@
   },
   {
     "Id": 2666,
-    "Level": null,
+    "Level": 60,
     "Category": "ce",
     "Exp": 1520000,
     "Bits": 684,
@@ -25325,7 +25325,7 @@
   },
   {
     "Id": 2683,
-    "Level": null,
+    "Level": 60,
     "Category": "ce",
     "Exp": 760000,
     "Bits": 136,
@@ -25352,7 +25352,7 @@
   },
   {
     "Id": 2667,
-    "Level": null,
+    "Level": 60,
     "Category": "ce",
     "Exp": 2280000,
     "Bits": 820,
@@ -25383,7 +25383,7 @@
   },
   {
     "Id": 2668,
-    "Level": null,
+    "Level": 60,
     "Category": "ce",
     "Exp": 4560000,
     "Bits": 957,
@@ -25414,7 +25414,7 @@
   },
   {
     "Id": 2688,
-    "Level": null,
+    "Level": 60,
     "Category": "ce",
     "Exp": 760000,
     "Bits": 136,
@@ -25447,7 +25447,7 @@
   },
   {
     "Id": 2669,
-    "Level": null,
+    "Level": 60,
     "Category": "ce",
     "Exp": 2800000,
     "Bits": 696,
@@ -25478,7 +25478,7 @@
   },
   {
     "Id": 2687,
-    "Level": null,
+    "Level": 60,
     "Category": "ce",
     "Exp": 1450000,
     "Bits": 141,
@@ -25509,7 +25509,7 @@
   },
   {
     "Id": 2672,
-    "Level": null,
+    "Level": 60,
     "Category": "ce",
     "Exp": 1450000,
     "Bits": 141,
@@ -25532,7 +25532,7 @@
   },
   {
     "Id": 2673,
-    "Level": null,
+    "Level": 60,
     "Category": "ce",
     "Exp": null,
     "Bits": null,
@@ -25542,7 +25542,7 @@
   },
   {
     "Id": 2674,
-    "Level": null,
+    "Level": 60,
     "Category": "ce",
     "Exp": 1500000,
     "Bits": 168,
@@ -25577,7 +25577,7 @@
   },
   {
     "Id": 2653,
-    "Level": null,
+    "Level": 60,
     "Category": "ce",
     "Exp": 1132500,
     "Bits": 792,
@@ -25614,7 +25614,7 @@
   },
   {
     "Id": 2652,
-    "Level": null,
+    "Level": 60,
     "Category": "ce",
     "Exp": 1132500,
     "Bits": 792,
@@ -25651,7 +25651,7 @@
   },
   {
     "Id": 2650,
-    "Level": null,
+    "Level": 60,
     "Category": "ce",
     "Exp": 755000,
     "Bits": 660,
@@ -25688,7 +25688,7 @@
   },
   {
     "Id": 2651,
-    "Level": null,
+    "Level": 60,
     "Category": "ce",
     "Exp": 1132500,
     "Bits": 792,
@@ -25725,7 +25725,7 @@
   },
   {
     "Id": 2661,
-    "Level": null,
+    "Level": 60,
     "Category": "ce",
     "Exp": 2250000,
     "Bits": 806,
@@ -25762,7 +25762,7 @@
   },
   {
     "Id": 2662,
-    "Level": null,
+    "Level": 60,
     "Category": "ce",
     "Exp": 2250000,
     "Bits": 806,
@@ -25799,7 +25799,7 @@
   },
   {
     "Id": 2665,
-    "Level": null,
+    "Level": 60,
     "Category": "ce",
     "Exp": 2280000,
     "Bits": 820,
@@ -25832,7 +25832,7 @@
   },
   {
     "Id": 2664,
-    "Level": null,
+    "Level": 60,
     "Category": "ce",
     "Exp": 2280000,
     "Bits": 820,
@@ -25869,7 +25869,7 @@
   },
   {
     "Id": 2670,
-    "Level": null,
+    "Level": 60,
     "Category": "ce",
     "Exp": 4200000,
     "Bits": 835,
@@ -25902,7 +25902,7 @@
   },
   {
     "Id": 2671,
-    "Level": null,
+    "Level": 60,
     "Category": "ce",
     "Exp": 4200000,
     "Bits": 835,
