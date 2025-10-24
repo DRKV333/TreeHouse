@@ -38,6 +38,12 @@ internal sealed class MongoDbService : IDisposable
 
     public Task Update(QuestData data) => collection.ReplaceOneAsync(x => x.MongoId == data.MongoId, data);
 
+    public Task<string?> GetIdByOrder(int order) => collection
+        .Find(x => x.Order == order)
+        .Limit(1)
+        .Project(x => x.MongoId.ToString())
+        .FirstOrDefaultAsync()!;
+
     public void Dispose()
     {
         client.Dispose();

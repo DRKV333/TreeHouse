@@ -18,6 +18,20 @@
 <PageTitle>@data.Name</PageTitle>
 
 <div class="position-relative">
+    <div class="btn-group btn-group-sm mb-3">
+        @if (prevId == null) {
+            <a class="btn btn-primary disabled"><Icon Name="IconName.CaretLeft" /></a>
+        } else {
+            <a class="btn btn-primary" href="details/@prevId"><Icon Name="IconName.CaretLeft" /></a>
+        }
+
+        @if (nextId == null) {
+            <a class="btn btn-primary disabled"><Icon Name="IconName.CaretRight" /></a>
+        } else {
+            <a class="btn btn-primary" href="details/@nextId"><Icon Name="IconName.CaretRight" /></a>
+        }
+    </div>
+
     <h1 class="mb-5">@data.Name</h1>
 
     <EditForm class="container" EditContext="@editContext">
@@ -76,6 +90,10 @@
 
     private Quest quest = new();
 
+    private string? prevId;
+
+    private string? nextId;
+
     protected override void OnInitialized()
     {
         editContext = new EditContext(data);
@@ -102,6 +120,11 @@
                 }
             }
         };
+
+        StateHasChanged();
+
+        prevId = await mongoDbService.GetIdByOrder(data.Order - 1);
+        nextId = await mongoDbService.GetIdByOrder(data.Order + 1);
     }
 
     private async Task FetchElasticQuest()
