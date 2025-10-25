@@ -43,8 +43,6 @@
     [Parameter]
     public string? Id { get; set; }
 
-    private bool isValid = true;
-
     private ValidationMessageStore? messageStore;
 
     [Parameter]
@@ -64,26 +62,19 @@
 
     private async Task OnChanged(ElasticAutoCompleteResult item)
     {
+        await TextValueChanged.InvokeAsync(item?.Content);
+
         if (item == null)
         {
-            isValid = false;
+            messageStore?.Add(idValueFieldIdentifier, "Selection is not valid.");
             return;
         }
 
-        isValid = true;
-
-        await TextValueChanged.InvokeAsync(item.Content);
+        messageStore?.Clear();
 
         IdValue = item.Id;
         await IdValueChanged.InvokeAsync(item.Id);
         EditContext?.NotifyFieldChanged(idValueFieldIdentifier);
-    }
-
-    private void HandleValidationRequested(object? sender, ValidationRequestedEventArgs args)
-    {
-        messageStore!.Clear();
-        if (!isValid)
-            messageStore!.Add(idValueFieldIdentifier, "Selection is not valid.");
     }
 
     protected override void OnInitialized()
@@ -92,9 +83,6 @@
             idValueFieldIdentifier = FieldIdentifier.Create(IdValueExpression);
 
         if (EditContext != null)
-        {
             messageStore = new ValidationMessageStore(EditContext);
-            EditContext.OnValidationRequested += HandleValidationRequested;
-        }
     }
 }
