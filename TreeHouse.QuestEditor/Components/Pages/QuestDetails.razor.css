@@ -22,4 +22,6 @@
 
 .save-fab {
     width: 56px; height: 56px;
+    position: fixed;
+    top: 4rem; right: 0px;
 }

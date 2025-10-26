@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Elastic.Clients.Elasticsearch;
 using Microsoft.Extensions.Options;
@@ -15,13 +16,17 @@ internal class ElasticsearchService(IOptions<DbConfig> config)
             new ElasticsearchClientSettings(new Uri(config.Value.ElasticUrl)).ConfigureQuestModels()
         );
 
-    public async Task<Quest> GetQuestById(long id)
+    public Task<Quest> GetQuestById(long id) => GetById<Quest>(id, x => x.Id);
+
+    public Task<Dialog> GetDialogById(long id) => GetById<Dialog>(id, x => x.Id);
+
+    private async Task<T> GetById<T>(long id, Expression<Func<T, object?>> idExpression)
     {
-        SearchResponse<Quest> response = await client.SearchAsync<Quest>(s => s
-            .Indices(Indices.Index<Quest>())
+        SearchResponse<T> response = await client.SearchAsync<T>(s => s
+            .Indices(Indices.Index<T>())
             .Query(q => q
                 .Match(m => m
-                    .Field(x => x.Id)
+                    .Field(idExpression)
                     .Query(id)
                 )
             )
@@ -58,6 +63,34 @@ internal class ElasticsearchService(IOptions<DbConfig> config)
         {
             Id = h.GetFieldValues(client, x => x.Id).Single(),
             Content = h.GetFieldValues(client, x => (string)x.Name.Suffix(Suffix.Keyword)).Single()
+        }).ToList();
+    }
+
+    public async Task<IReadOnlyList<ElasticAutoCompleteResult>> AutoCompleteDialog(string query) // TODO
+    {
+        SearchResponse<Dialog> response = await client.SearchAsync<Dialog>(s => s
+            .Indices(Indices.Index<Dialog>())
+            .Query(q => q
+                .Match(m => m
+                    .Field(x => x.Text)
+                    .Query(query)
+                )
+            )
+            .Size(10)
+            .Source(c => c
+                .Filter(f => f
+                    .Includes(
+                        x => x.Text,
+                        x => x.Id
+                    )
+                )
+            )
+        ).CheckSuccess();
+
+        return response.Documents.Select(x => new ElasticAutoCompleteResult()
+        {
+            Id = x.Id,
+            Content = x.Text
         }).ToList();
     }
 }

@@ -17,7 +17,7 @@
 
 <PageTitle>@data.Name</PageTitle>
 
-<div class="position-relative">
+<div>
     <div class="btn-group btn-group-sm mb-3">
         @if (prevId == null) {
             <a class="btn btn-primary disabled"><Icon Name="IconName.CaretLeft" /></a>
@@ -77,9 +77,23 @@
                 <TextAreaInput id="input-comments" @bind-Value="data.Comments" Rows="5" />
             </div>
         </div>
+        <div class="row mb-3">
+            <label class="col-2 col-form-label">Dialog:</label>
+            <div class="col-10">
+                <BindableSortableList TItem="DialogData" @bind-Data="data.Dialogs">
+                    <ItemTemplate Context="dialog">
+                        <BindableSortableList TItem="DialogLine" @bind-Data="dialog.Lines">
+                            <ItemTemplate Context="line">
+                                <DialogLineEditor LineData="line" />
+                            </ItemTemplate>
+                        </BindableSortableList>
+                    </ItemTemplate>
+                </BindableSortableList>
+            </div>
+        </div>
     </EditForm>
 
-    <div @ref="saveAnim" class="save-fab save-anim bg-success text-success-emphasis fs-3 rounded-4 position-absolute top-0 end-0 p-1 m-3 text-center">
+    <div @ref="saveAnim" class="save-fab save-anim bg-success text-success-emphasis fs-3 rounded-4 p-1 m-3 text-center">
         <Icon Name="IconName.FloppyFill" />
     </div>
 </div>

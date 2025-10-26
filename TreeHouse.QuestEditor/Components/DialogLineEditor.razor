@@ -1,0 +1,29 @@
+@using BlazorBootstrap
+@using TreeHouse.QuestEditor.Services
+@using TreeHouse.QuestModels.Elasticsearch
+@using TreeHouse.QuestModels.Mongo
+
+@inherits ComponentBase
+
+@inject ElasticsearchService elasticService
+
+@attribute [StreamRendering]
+
+<ElasticAutoComplete
+    SearchDelegate="elasticService.AutoCompleteDialog"
+    @bind-IdValue="LineData.Id"
+    @bind-TextValue="LineText"
+/>
+
+@code {
+    [Parameter]
+    [EditorRequired]
+    public DialogLine LineData { get; set; } = null!;
+
+    private string LineText { get; set; } = "";
+
+    protected override async Task OnParametersSetAsync()
+    {
+        LineText = (await elasticService.GetDialogById(LineData.Id)).Text;
+    }
+}

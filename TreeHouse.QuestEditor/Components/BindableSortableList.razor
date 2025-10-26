@@ -1,0 +1,61 @@
+@using BlazorBootstrap
+@using Microsoft.AspNetCore.Components.Forms
+@using System.Linq.Expressions
+
+@inherits ComponentBase
+
+@typeparam TItem
+
+<SortableList
+    TItem="TItem"
+    Handle=".bb-sortable-list-handle"
+    Data="Data"
+    OnUpdate="OnUpdate"
+>
+    <ItemTemplate Context="item">
+        <div class="d-flex justify-content-start">
+            <div class="bb-sortable-list-handle pe-2"><Icon Name="IconName.GripVertical" /></div>
+            <div class="flex-grow-1">@ItemTemplate(item)</div>
+        </div>
+    </ItemTemplate>
+</SortableList>
+
+@code {
+    [CascadingParameter]
+    private EditContext? EditContext { get; set; }
+
+    [Parameter]
+    public List<TItem> Data { get; set; } = null!;
+
+    [Parameter]
+    public EventCallback<List<TItem>> DataChanged { get; set; }
+
+    [Parameter]
+    public Expression<Func<List<TItem>>>? DataExpression { get; set; }
+
+    private FieldIdentifier dataFieldItentifier;
+
+    [Parameter]
+    [EditorRequired]
+    public RenderFragment<TItem> ItemTemplate { get; set; } = null!;
+
+    protected override void OnInitialized()
+    {
+        if (DataExpression != null)
+            dataFieldItentifier = FieldIdentifier.Create(DataExpression);
+    }
+
+    private void OnUpdate(SortableListEventArgs args)
+    {
+        TItem itemToMove = Data[args.OldIndex];
+
+        Data.RemoveAt(args.OldIndex);
+
+        if (args.NewIndex < Data.Count)
+            Data.Insert(args.NewIndex, itemToMove);
+        else
+            Data.Add(itemToMove);
+
+        EditContext?.NotifyFieldChanged(dataFieldItentifier);
+    }
+}
