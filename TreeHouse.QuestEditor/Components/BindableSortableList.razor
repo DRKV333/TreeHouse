@@ -1,5 +1,6 @@
 @using BlazorBootstrap
 @using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.AspNetCore.Components.Web
 @using System.Linq.Expressions
 
 @inherits ComponentBase
@@ -14,11 +15,15 @@
 >
     <ItemTemplate Context="item">
         <div class="d-flex justify-content-start">
-            <div class="bb-sortable-list-handle pe-2"><Icon Name="IconName.GripVertical" /></div>
+            <div class="pe-2 text-center">
+                <div class="bb-sortable-list-handle"><Icon Name="IconName.GripVertical" /></div>
+                <button type="button" @onclick="() => Delete(item)" class="btn btn-outline-danger btn-sm mt-2"><Icon Name="IconName.Trash" /></button>
+            </div>
             <div class="flex-grow-1">@ItemTemplate(item)</div>
         </div>
     </ItemTemplate>
 </SortableList>
+<button type="button" @onclick="Add" class="btn btn-primary my-3"><Icon Name="IconName.Plus" /></button>
 
 @code {
     [CascadingParameter]
@@ -32,6 +37,10 @@
 
     [Parameter]
     public Expression<Func<List<TItem>>>? DataExpression { get; set; }
+
+    [Parameter]
+    [EditorRequired]
+    public Func<TItem?> ItemFactory { get; set; } = null!;
 
     private FieldIdentifier dataFieldItentifier;
 
@@ -57,5 +66,24 @@
             Data.Add(itemToMove);
 
         EditContext?.NotifyFieldChanged(dataFieldItentifier);
+    }
+
+    private void Delete(TItem item)
+    {
+        Data.Remove(item);
+        EditContext?.NotifyFieldChanged(dataFieldItentifier);
+    }
+
+    private void Add()
+    {
+        TItem? newItem = ItemFactory();
+        if (newItem != null)
+        {
+            Data.Add(newItem);
+
+            // TODO: When a new dialog line is added, we should not save, because the ID will be invalid.
+            // I couldn't find a good way to update validation when an item is added/removed, so just pretend nothing changed.
+            //EditContext?.NotifyFieldChanged(dataFieldItentifier);
+        }
     }
 }

@@ -80,9 +80,9 @@
         <div class="row mb-3">
             <label class="col-2 col-form-label">Dialog:</label>
             <div class="col-10">
-                <BindableSortableList TItem="DialogData" @bind-Data="data.Dialogs">
+                <BindableSortableList TItem="DialogData" @bind-Data="data.Dialogs" ItemFactory="() => new DialogData() { Lines = new List<DialogLine>() }">
                     <ItemTemplate Context="dialog">
-                        <BindableSortableList TItem="DialogLine" @bind-Data="dialog.Lines">
+                        <BindableSortableList TItem="DialogLine" @bind-Data="dialog.Lines" ItemFactory="() => new DialogLine()">
                             <ItemTemplate Context="line">
                                 <DialogLineView LineData="line" />
                             </ItemTemplate>
