@@ -1,0 +1,72 @@
+@using BlazorBootstrap
+@using Microsoft.AspNetCore.Components.Forms;
+@using System.Linq.Expressions
+@using TreeHouse.QuestModels.Mongo
+
+@inherits ComponentBase
+
+<div class="btn-group">
+    <CascadingValue TValue="EditContext" Value="null">
+        <InputCheckbox id="@($"toggle-yes-{randomNumber}")" class="btn-check" @bind-Value="Yes" />
+        <label for="@($"toggle-yes-{randomNumber}")" class="btn btn-outline-success"><Icon Name="IconName.Check" /></label>
+
+        <InputCheckbox id="@($"toggle-no-{randomNumber}")" class="btn-check" @bind-Value="No" />
+        <label for="@($"toggle-no-{randomNumber}")" class="btn btn-outline-danger"><Icon Name="IconName.X" /></label>
+
+        <InputCheckbox id="@($"toggle-more-{randomNumber}")" class="btn-check" @bind-Value="More" />
+        <label for="@($"toggle-more-{randomNumber}")" class="btn btn-outline-info"><Icon Name="IconName.ThreeDots" /></label>
+    </CascadingValue>
+</div>
+
+@code {
+    [CascadingParameter]
+    private EditContext? EditContext { get; set; }
+
+    [Parameter]
+    public DialogLine.Response Response { get; set; }
+
+    [Parameter]
+    public EventCallback<DialogLine.Response> ResponseChanged { get; set; }
+
+    [Parameter]
+    public Expression<Func<DialogLine.Response>>? ResponseExpression { get; set; }
+
+    private FieldIdentifier responseFieldIdentifier { get; set; }
+
+    private bool Yes
+    {
+        get => Response.HasFlag(DialogLine.Response.Yes);
+        set => UpdateFlag(DialogLine.Response.Yes, value);
+    }
+
+    private bool No
+    {
+        get => Response.HasFlag(DialogLine.Response.No);
+        set => UpdateFlag(DialogLine.Response.No, value);
+    }
+
+    private bool More
+    {
+        get => Response.HasFlag(DialogLine.Response.More);
+        set => UpdateFlag(DialogLine.Response.More, value);
+    }
+
+    private int randomNumber = Random.Shared.Next();
+
+    private async void UpdateFlag(DialogLine.Response flag, bool value)
+    {
+        DialogLine.Response newFlags = Response & (~flag);
+        if (value)
+            newFlags |= flag;
+
+        Response = newFlags;
+        await ResponseChanged.InvokeAsync(newFlags);
+        EditContext?.NotifyFieldChanged(responseFieldIdentifier);
+    }
+
+    protected override void OnInitialized()
+    {
+        if (ResponseExpression != null)
+            responseFieldIdentifier = FieldIdentifier.Create(ResponseExpression);
+    }
+}

@@ -84,7 +84,7 @@
                     <ItemTemplate Context="dialog">
                         <BindableSortableList TItem="DialogLine" @bind-Data="dialog.Lines">
                             <ItemTemplate Context="line">
-                                <DialogLineEditor LineData="line" />
+                                <DialogLineView LineData="line" />
                             </ItemTemplate>
                         </BindableSortableList>
                     </ItemTemplate>

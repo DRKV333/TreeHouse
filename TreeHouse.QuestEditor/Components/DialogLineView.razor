@@ -9,11 +9,18 @@
 
 @attribute [StreamRendering]
 
-<ElasticAutoComplete
-    SearchDelegate="elasticService.AutoCompleteDialog"
-    @bind-IdValue="LineData.Id"
-    @bind-TextValue="LineText"
-/>
+<div class="d-flex">
+    <div class="flex-grow-1">
+        <ElasticAutoComplete
+            SearchDelegate="elasticService.AutoCompleteDialog"
+            @bind-IdValue="LineData.Id"
+            @bind-TextValue="LineText"
+        />
+    </div>
+    <div class="mx-1">
+        <DialogResponseView @bind-Response="LineData.Responses" />
+    </div>
+</div>
 
 @code {
     [Parameter]
