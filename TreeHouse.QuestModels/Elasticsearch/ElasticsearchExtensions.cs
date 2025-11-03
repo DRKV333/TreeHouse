@@ -74,7 +74,7 @@ public static class ElasticsearchExtensions
         .Mappings(m => m
             .Properties(p => p
                 .IdKeywordWithNumber(x => x.Id)
-                .TextEnglish(x => x.Text)
+                .SearchAsYouType(x => x.Text, p => p.Analyzer("english"))
                 .IntegerNumber(x => x.Ver)
             )
         );

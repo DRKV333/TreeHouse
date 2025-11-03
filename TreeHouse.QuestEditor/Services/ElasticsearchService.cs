@@ -4,6 +4,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Elastic.Clients.Elasticsearch;
+using Elastic.Clients.Elasticsearch.QueryDsl;
 using Microsoft.Extensions.Options;
 using TreeHouse.QuestModels.Elasticsearch;
 
@@ -71,8 +72,13 @@ internal class ElasticsearchService(IOptions<DbConfig> config)
         SearchResponse<Dialog> response = await client.SearchAsync<Dialog>(s => s
             .Indices(Indices.Index<Dialog>())
             .Query(q => q
-                .Match(m => m
-                    .Field(x => x.Text)
+                .MultiMatch(m => m
+                    .Type(TextQueryType.BoolPrefix)
+                    .Fields(
+                        x => x.Text,
+                        x => x.Text.Suffix(Suffix.TwoGram),
+                        x => x.Text.Suffix(Suffix.ThreeGram)
+                    )
                     .Query(query)
                 )
             )
