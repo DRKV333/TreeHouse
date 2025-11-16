@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.CommandLine;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -30,40 +31,56 @@ static async Task Convert(DirectoryInfo source, DirectoryInfo target)
 
 static async Task WriteSlippyTiles(Image image, DirectoryInfo target)
 {
-    int zoomLevel = 0;
+    int bigDimention = Math.Max(image.Width, image.Height);
+    int zoomLevels = Math.Max(1, (int)MathF.Ceiling(MathF.Log2((float)bigDimention / SlippyTileSize)) + 1);
 
-    Console.WriteLine("Creating slippy tiles...");
+    int maxTileCount = 1 << (zoomLevels - 1);
+    int tileWidth = image.Width / maxTileCount;
+    int tileHeight = image.Height / maxTileCount;
 
-    while (true)
+    Console.WriteLine($"Creating {tileWidth}x{tileHeight} slippy tiles with {zoomLevels} levels...");
+
+    for (int i = 0; i < zoomLevels; i++)
     {
-        int tileCount = 1 << zoomLevel;
-        int fullSize = tileCount * SlippyTileSize;
-        float scaleFactor = Math.Min((float)fullSize / image.Width, (float)fullSize / image.Height);
+        int tileCount = 1 << i;
+        int scaledWidth = tileWidth * tileCount;
+        int scaledHeight = tileHeight * tileCount;
 
-        Console.WriteLine($"Level: {zoomLevel}, Scale: {scaleFactor}");
+        Console.WriteLine($"Level: {i}, Scaled Size: {scaledWidth}x{scaledHeight}");
 
-        string zoomDir = Path.Join(target.FullName, zoomLevel.ToString());
+        Image? scaled = null;
 
-        IResampler resampler = scaleFactor >= 1 ? new NearestNeighborResampler() : new BicubicResampler();
-
-        using Image scaled = image.Clone(x => x.Resize(fullSize, fullSize, resampler));
-
-        for (int x = 0; x < tileCount; x++)
+        Image zoomSource;
+        if (i == zoomLevels - 1)
         {
-            string xDir = Path.Join(zoomDir, x.ToString());
-            Directory.CreateDirectory(xDir);
-
-            for (int y = 0; y < tileCount; y++)
-            {
-                using Image tile = scaled.Clone(c => c.Crop(new Rectangle(x * SlippyTileSize, y * SlippyTileSize, SlippyTileSize, SlippyTileSize)));
-                await tile.SaveAsPngAsync(Path.Join(xDir, $"{y}.png"));
-            }
+            zoomSource = image;
+        }
+        else
+        {
+            scaled = image.Clone(x => x.Resize(scaledWidth, scaledHeight, new BicubicResampler()));
+            zoomSource = scaled;
         }
 
-        if (scaleFactor >= 1)
-            break;
+        try
+        {
+            string zoomDir = Path.Join(target.FullName, i.ToString());
 
-        zoomLevel++;
+            for (int x = 0; x < tileCount; x++)
+            {
+                string xDir = Path.Join(zoomDir, x.ToString());
+                Directory.CreateDirectory(xDir);
+
+                for (int y = 0; y < tileCount; y++)
+                {
+                    using Image tile = zoomSource.Clone(c => c.Crop(new Rectangle(x * tileWidth, y * tileHeight, tileWidth, tileHeight)));
+                    await tile.SaveAsPngAsync(Path.Join(xDir, $"{y}.png"));
+                }
+            }
+        }
+        finally
+        {
+            scaled?.Dispose();
+        }
     }
 }
 
