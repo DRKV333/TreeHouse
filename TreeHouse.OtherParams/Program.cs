@@ -188,7 +188,7 @@ WHERE pos IS NOT NULL
             Id = JsonValue.Create(instanceUid),
             Geometry = new PointGeometry()
             {
-                Coordinates = posParsed
+                Coordinates = [posParsed[1], posParsed[0]]
             },
             Properties = new JsonObject()
             {
