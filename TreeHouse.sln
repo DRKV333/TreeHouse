@@ -33,6 +33,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TreeHouse.QuestEditor", "Tr
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TreeHouse.MapTiler", "TreeHouse.MapTiler\TreeHouse.MapTiler.csproj", "{B1DA3A64-04DD-42FB-B932-EAE72370FBBD}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TreeHouse.Common.SQLite", "TreeHouse.Common.SQLite\TreeHouse.Common.SQLite.csproj", "{1AEADB8F-E2C7-4D29-A69F-4B1020629CD8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -95,6 +97,10 @@ Global
 		{B1DA3A64-04DD-42FB-B932-EAE72370FBBD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B1DA3A64-04DD-42FB-B932-EAE72370FBBD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B1DA3A64-04DD-42FB-B932-EAE72370FBBD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1AEADB8F-E2C7-4D29-A69F-4B1020629CD8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1AEADB8F-E2C7-4D29-A69F-4B1020629CD8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1AEADB8F-E2C7-4D29-A69F-4B1020629CD8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1AEADB8F-E2C7-4D29-A69F-4B1020629CD8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

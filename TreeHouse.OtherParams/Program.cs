@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using TreeHouse.Common.CommandLine;
+using TreeHouse.Common.SQLite;
 using TreeHouse.OtherParams;
 using TreeHouse.OtherParams.GeoJson;
 using TreeHouse.OtherParams.JsonConverter;

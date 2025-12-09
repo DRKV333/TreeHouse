@@ -8,6 +8,7 @@ using System.Text.Json.Nodes;
 using Microsoft.Data.Sqlite;
 using TreeHouse.Common;
 using TreeHouse.Common.IO;
+using TreeHouse.Common.SQLite;
 
 namespace TreeHouse.OtherParams.JsonConverter;
 
@@ -98,10 +99,10 @@ public abstract class DbJsonConverterBase
             string table = tableItem.Key;
 
             if (writeJson)
-                SqliteUtils.AddColumnIfNotExists(connection, table, "TEXT", "dataJSON");
+                connection.AddColumnIfNotExists(table, "TEXT", "dataJSON");
 
             if (writeJsonb)
-                SqliteUtils.AddColumnIfNotExists(connection, table, "BLOB", "dataJSONB");
+                connection.AddColumnIfNotExists(table, "BLOB", "dataJSONB");
 
             StringBuilder commandBuilder = new();
             commandBuilder.Append($"UPDATE {table} SET ");

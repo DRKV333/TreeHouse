@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using TreeHouse.Common.SQLite;
 using TreeHouse.OtherParams.Model;
 
 namespace TreeHouse.OtherParams;

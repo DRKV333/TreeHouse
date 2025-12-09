@@ -1,23 +1,10 @@
 using Microsoft.Data.Sqlite;
 
-namespace TreeHouse.OtherParams;
+namespace TreeHouse.Common.SQLite;
 
-public static class SqliteUtils
+public static class SqliteExtensions
 {
-    public static string ConnectionString(string path, bool write = false) => new SqliteConnectionStringBuilder()
-    {
-        DataSource = path,
-        Mode = write ? SqliteOpenMode.ReadWriteCreate : SqliteOpenMode.ReadOnly,
-    }.ConnectionString;
-
-    public static SqliteConnection Open(string path, bool write = false)
-    {
-        SqliteConnection connection = new(ConnectionString(path, write));
-        connection.Open();
-        return connection;
-    }
-
-    public static void AddColumnIfNotExists(SqliteConnection connection, string table, string type, string column)
+    public static void AddColumnIfNotExists(this SqliteConnection connection, string table, string type, string column)
     {
         bool haveColumn = false;
         
