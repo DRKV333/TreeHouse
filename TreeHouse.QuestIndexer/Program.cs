@@ -13,6 +13,7 @@ using MongoDB.Bson;
 using MongoDB.Driver;
 using TreeHouse.Common;
 using TreeHouse.Common.CommandLine;
+using TreeHouse.Common.SQLite;
 using TreeHouse.ImageFeatures;
 using TreeHouse.QuestModels.Elasticsearch;
 using TreeHouse.QuestModels.Mongo;
@@ -73,12 +74,7 @@ static async Task IndexQuests(string elasticUrl, FileInfo source)
     await client.Indices.CreateAsync<Quest>(i => i.CreateQuest())
         .CheckSuccess($"creating index {Quest.IndexName}");
 
-    using SqliteConnection connection = new(new SqliteConnectionStringBuilder()
-    {
-        DataSource = source.FullName,
-        Mode = SqliteOpenMode.ReadOnly
-    }.ConnectionString);
-    connection.Open();
+    using SqliteConnection connection = SqliteUtils.Open(source.FullName);
 
     using SqliteCommand questCommand = connection.CreateCommand();
     questCommand.CommandText = "SELECT Id, DisplayName, Desc, OfferDialog, AcceptedDialog, CompleteDialog FROM Quest";
@@ -127,12 +123,7 @@ static async Task IndexDialogs(string elasticUrl, FileInfo source)
     await client.Indices.CreateAsync<Dialog>(i => i.CreateDialog())
         .CheckSuccess($"creating index {Dialog.IndexName}");
 
-    using SqliteConnection connection = new(new SqliteConnectionStringBuilder()
-    {
-        DataSource = source.FullName,
-        Mode = SqliteOpenMode.ReadOnly
-    }.ConnectionString);
-    connection.Open();
+    using SqliteConnection connection = SqliteUtils.Open(source.FullName);
 
     using SqliteCommand command = connection.CreateCommand();
     command.CommandText = "SELECT ID, Text, Version FROM Dialog";

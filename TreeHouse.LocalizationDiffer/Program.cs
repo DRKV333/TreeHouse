@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Data.Sqlite;
 using TreeHouse.Common.CommandLine;
+using TreeHouse.Common.SQLite;
 using TreeHouse.LocalizationDiffer;
 using UniDelta.Myers;
 
@@ -35,11 +36,11 @@ await new RootCommand()
 
 async Task Diff(FileInfo original, FileInfo edited, FileInfo patchOut)
 {
-    using SqliteConnection connection = Open(original.FullName);
-    Attach(connection, edited.FullName, "edited");
+    using SqliteConnection connection = SqliteUtils.Open(original.FullName);
+    connection.Attach(edited.FullName, "edited");
 
-    IReadOnlyCollection<string> originalTables = GetTables(connection, "");
-    IReadOnlyCollection<string> editedTables = GetTables(connection, "edited.");
+    IReadOnlyCollection<string> originalTables = connection.GetTables();
+    IReadOnlyCollection<string> editedTables = connection.GetTables("edited");
 
     using TextWriter patchWriter = patchOut.CreateText();
 
@@ -99,42 +100,4 @@ async Task Diff(FileInfo original, FileInfo edited, FileInfo patchOut)
             Console.WriteLine($"Wrote diff for {rowCount} row(s).");
         }
     }
-}
-
-// TODO: These are from OtherParam, deduplicate maybe.
-static string ConnectionString(string path, bool write = false) => new SqliteConnectionStringBuilder()
-{
-    DataSource = path,
-    Mode = write ? SqliteOpenMode.ReadWriteCreate : SqliteOpenMode.ReadOnly,
-}.ConnectionString;
-
-static SqliteConnection Open(string path, bool write = false)
-{
-    SqliteConnection connection = new(ConnectionString(path, write));
-    connection.Open();
-    return connection;
-}
-
-static IReadOnlyCollection<string> GetTables(SqliteConnection connection, string db)
-{
-    using SqliteCommand command = connection.CreateCommand();
-    command.CommandText = $"SELECT name FROM {db}sqlite_master WHERE type = 'table'";
-
-    using SqliteDataReader reader = command.ExecuteReader();
-
-    List<string> result = new();
-    while(reader.Read())
-    {
-        result.Add(reader.GetString(0));
-    }
-
-    return result;
-}
-
-static void Attach(SqliteConnection connection, string path, string name)
-{
-    using SqliteCommand command = connection.CreateCommand();
-    command.CommandText = $"ATTACH DATABASE @path AS {name}";
-    command.Parameters.AddWithValue("@path", path);
-    command.ExecuteNonQuery();
 }

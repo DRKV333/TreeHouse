@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Microsoft.Data.Sqlite;
 
 namespace TreeHouse.Common.SQLite;
@@ -29,5 +30,32 @@ public static class SqliteExtensions
             alterCommand.CommandText = $"ALTER TABLE {table} ADD COLUMN {column} {type}";
             alterCommand.ExecuteNonQuery();
         }
+    }
+
+    public static IReadOnlyCollection<string> GetTables(this SqliteConnection connection, string db = "")
+    {
+        if (db != "")
+            db += ".";
+
+        using SqliteCommand command = connection.CreateCommand();
+        command.CommandText = $"SELECT name FROM {db}sqlite_master WHERE type = 'table'";
+
+        using SqliteDataReader reader = command.ExecuteReader();
+
+        List<string> result = new();
+        while(reader.Read())
+        {
+            result.Add(reader.GetString(0));
+        }
+
+        return result;
+    }
+
+    public static void Attach(this SqliteConnection connection, string path, string name)
+    {
+        using SqliteCommand command = connection.CreateCommand();
+        command.CommandText = $"ATTACH DATABASE @path AS {name}"; // TODO: Use URI for path, so that this can be readonly.
+        command.Parameters.AddWithValue("@path", path);
+        command.ExecuteNonQuery();
     }
 }
