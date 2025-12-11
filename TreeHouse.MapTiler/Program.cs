@@ -1,15 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.CommandLine;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using SixLabors.ImageSharp.Processing.Processors.Transforms;
+using TreeHouse.Common;
 using TreeHouse.Common.CommandLine;
+using TreeHouse.MapTiler;
+using UELib;
+using UELib.Core;
 
 await new RootCommand()
 {
@@ -17,7 +22,13 @@ await new RootCommand()
     {
         new Option<DirectoryInfo>(["-s", "--source"]).ExistingOnly().Required(),
         new Option<DirectoryInfo>(["-t", "--target"]).Required()
-    }.WithHandler(Convert)
+    }.WithHandler(Convert),
+
+    new Command("extract-info")
+    {
+        new Option<FileInfo>(["-p", "--package"]).ExistingOnly().Required(),
+        new Option<FileInfo>(["-o", "--out"]).Required()
+    }.WithHandler(ExtractInfo)
 }
 .InvokeAsync(args);
 
@@ -165,4 +176,49 @@ static (int, int, string) DetectSizeInTiles(DirectoryInfo source)
     }
 
     return (x, y, ext);
+}
+
+static void ExtractInfo(FileInfo packageFile, FileInfo outFile)
+{
+    Regex boxRegex = new(@"^\(Min=\(X=(?<minx>[-\d.]+),Y=(?<miny>[-\d.]+),Z=[-\d.]+[-\d.]+\),Max=\(X=(?<maxx>[-\d.]+),Y=(?<maxy>[-\d.]+),Z=[-\d.]+\),IsValid=1\)$");
+
+    using UnrealPackage package = UnrealLoader.LoadPackage(packageFile.FullName, FileAccess.Read);
+
+    package.InitializePackage();
+
+    List<MapInfo> mapInfos = new();
+
+    foreach (UObject obj in package.Objects)
+    {
+        if (obj.Class != null && obj.Class.Name == "RUFloorMapInfo")
+        {
+            MapInfo info = new();
+            mapInfos.Add(info);
+
+            obj.Load<UObjectStream>();
+
+            string path = obj.GetPath();
+            Console.WriteLine(path);
+
+            string[] pathParts = path.Split('.');
+            info.PackageName = pathParts[0];
+            info.ZoneName = pathParts[1];
+
+            UDefaultProperty? unitsProp = obj.Properties.Find("UnitsPerPixel");
+            if (unitsProp != null)
+                info.UnitsPerPixel = float.Parse(unitsProp.Value);
+
+            UDefaultProperty? bboxProp = obj.Properties.Find("BoundingBox");
+            if (bboxProp != null && boxRegex.TryMatch(bboxProp.Value, out Match match))
+            {
+                info.MinX = float.Parse(match.Groups["minx"].Value);
+                info.MinY = float.Parse(match.Groups["miny"].Value);
+                info.MaxX = float.Parse(match.Groups["maxx"].Value);
+                info.MaxY = float.Parse(match.Groups["maxy"].Value);
+            }
+        }
+    }
+
+    using Stream fs = outFile.Create();
+    JsonSerializer.Serialize(fs, mapInfos);
 }
