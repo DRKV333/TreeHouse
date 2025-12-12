@@ -37,8 +37,9 @@ await new RootCommand()
 
     new Command("extract-geojson")
     {
-        new Option<FileInfo>(["--instance-db", "-i"]).ExistingOnly().Required(),
-        new Option<DirectoryInfo>(["--output", "-o"]).Required()
+        new Option<FileInfo>(["-d", "--instance-db"]).ExistingOnly().Required(),
+        new Option<FileInfo>(["-i", "--map-info"]).ExistingOnly().Required(),
+        new Option<DirectoryInfo>(["-o", "--output"]).Required()
     }.WithHandler(ExtractGeoJson)
 }
 .InvokeAsync(args);
@@ -238,17 +239,24 @@ static void ExtractInfo(FileInfo packageFile, FileInfo outFile)
     JsonSerializer.Serialize(fs, mapInfos);
 }
 
-static async Task ExtractGeoJson(FileInfo instanceDb, DirectoryInfo output)
+static async Task ExtractGeoJson(FileInfo instanceDb, FileInfo mapInfoFile, DirectoryInfo output)
 {
+    IList<MapInfo> mapInfos;
+    using (Stream fs = mapInfoFile.OpenRead())
+    {
+        mapInfos = JsonSerializer.Deserialize<IList<MapInfo>>(fs)!;
+    }
+
+    Dictionary<int, List<(MapInfo info, GeoJsonFeatureCollection geoJson)>> zonesByWorldId = mapInfos
+        .GroupBy(x => x.WorldId)
+        .ToDictionary(
+            x => x.Key,
+            x => x.Select(z => (z, new GeoJsonFeatureCollection() { Features = new List<GeoJsonFeature>() })).ToList()
+        );
+
     output.Create();
 
     using SqliteConnection connection = SqliteUtils.Open(instanceDb.FullName);
-
-    Dictionary<string, (string name, GeoJsonFeatureCollection features)> geoJsonByWorld = GetWorldDefs(connection)
-        .ToDictionary(
-            x => x.uid,
-            x => (x.name, new GeoJsonFeatureCollection() { Features = new List<GeoJsonFeature>() })
-        );
 
     using SqliteCommand posQuery = connection.CreateCommand();
 
@@ -257,20 +265,23 @@ static async Task ExtractGeoJson(FileInfo instanceDb, DirectoryInfo output)
                                 Instance.uxInstanceGuid,
                                 Instance.sEditorName,
                                 Instance.dataJSON ->> "pos" AS pos,
-                                Zone.uxWorldDefGuid
+                                WorldDef.ixWorldID
                             FROM Instance
                             JOIN Zone ON Instance.uxZoneGuid = Zone.uxZoneGuid
+                            JOIN WorldDef ON Zone.uxWorldDefGuid = WorldDef.uxWorldDefGuid
                             WHERE pos IS NOT NULL
                             """;
 
     using SqliteDataReader reader = posQuery.ExecuteReader();
+
+    HashSet<int> missingWorlds = new();
 
     while (reader.Read())
     {
         string instanceUid = reader.GetString(0);
         string instanceEditorName = reader.GetString(1);
         string instancePos = reader.GetString(2);
-        string worldUid = reader.GetString(3);
+        int worldId = reader.GetInt32(3);
 
         double[] posParsed;
         try
@@ -283,24 +294,46 @@ static async Task ExtractGeoJson(FileInfo instanceDb, DirectoryInfo output)
             continue;
         }
 
-        if (!geoJsonByWorld.TryGetValue(worldUid, out var geoJson))
+        if (!zonesByWorldId.TryGetValue(worldId, out var zones))
         {
-            Console.WriteLine($"No WorldDef with id '{worldUid}' found for instance '{instanceUid}'.");
+            if (missingWorlds.Add(worldId))
+                Console.WriteLine($"No map info for WorldDef with id '{worldId}' found for instance '{instanceUid}'.");
             continue;
         }
 
-        geoJson.features.Features.Add(new GeoJsonFeature()
+        double x = posParsed[0];
+        double y = posParsed[1];
+
+        GeoJsonFeature feature = new()
         {
             Id = JsonValue.Create(instanceUid),
             Geometry = new PointGeometry()
             {
-                Coordinates = [posParsed[1], posParsed[0]]
+                Coordinates = [y, x]
             },
             Properties = new JsonObject()
             {
                 ["name"] = instanceEditorName
             }
-        });
+        };
+
+        GeoJsonFeatureCollection collection;
+        if (zones.Count == 1)
+        {
+            collection = zones[0].geoJson;
+        }
+        else
+        {
+            (_, collection) = zones.FirstOrDefault(i =>
+                x >= i.info.MinX && x <= i.info.MaxX &&
+                y >= i.info.MinY && y <= i.info.MaxY
+            );
+        }
+
+        if (collection != null)
+            collection.Features.Add(feature);
+        else
+            Console.WriteLine($"Instance '{instanceUid}' is not in any zone of world '{worldId}'."); // TODO: Do something about these.
     }
 
     JsonSerializerOptions jsonOptions = new()
@@ -308,30 +341,14 @@ static async Task ExtractGeoJson(FileInfo instanceDb, DirectoryInfo output)
         TypeInfoResolver = new DefaultJsonTypeInfoResolver().WithGeoJsonTypesModifier()
     };
 
-    foreach (var world in geoJsonByWorld.Values)
+    foreach ((MapInfo info, GeoJsonFeatureCollection geoJson) in zonesByWorldId.Values.SelectMany(x => x))
     {
-        Console.WriteLine(world.name);
+        string outName = $"{info.PackageName}.{info.ZoneName}.geojson";
+        Console.WriteLine(outName);
 
-        string outPath = Path.Join(output.FullName, $"{world.name}.geojson");
+        string outPath = Path.Join(output.FullName, outName);
 
         using Stream fs = File.Create(outPath);
-        await JsonSerializer.SerializeAsync(fs, world.features, jsonOptions);
-    }
-}
-
-static IEnumerable<(string uid, string name)> GetWorldDefs(SqliteConnection connection)
-{
-    using SqliteCommand command = connection.CreateCommand();
-
-    command.CommandText = "SELECT uxWorldDefGuid, sWorldDef FROM WorldDef";
-
-    using SqliteDataReader reader = command.ExecuteReader();
-
-    while (reader.Read())
-    {
-        string worldUid = reader.GetString(0);
-        string worldName = reader.GetString(1);
-
-        yield return (worldUid, worldName);
+        await JsonSerializer.SerializeAsync(fs, geoJson, jsonOptions);
     }
 }
