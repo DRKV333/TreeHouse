@@ -4,6 +4,8 @@ public class MapInfo
 {
     public string PackageName { get; set; } = "";
 
+    public int WorldId { get; set; }
+
     public string ZoneName { get; set; } = "";
 
     public float UnitsPerPixel { get; set; }

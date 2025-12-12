@@ -204,6 +204,10 @@ static void ExtractInfo(FileInfo packageFile, FileInfo outFile)
             info.PackageName = pathParts[0];
             info.ZoneName = pathParts[1];
 
+            UDefaultProperty? idProp = obj.Properties.Find("WorldID");
+            if (idProp != null)
+                info.WorldId = int.Parse(idProp.Value);
+
             UDefaultProperty? unitsProp = obj.Properties.Find("UnitsPerPixel");
             if (unitsProp != null)
                 info.UnitsPerPixel = float.Parse(unitsProp.Value);
