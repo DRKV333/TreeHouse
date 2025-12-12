@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 
-namespace TreeHouse.OtherParams.GeoJson;
+namespace TreeHouse.MapTiler.GeoJson;
 
 [GeoJsonType]
 public abstract class GeoJsonObject

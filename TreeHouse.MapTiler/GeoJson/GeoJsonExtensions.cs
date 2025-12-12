@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
 using TreeHouse.Common;
 
-namespace TreeHouse.OtherParams.GeoJson;
+namespace TreeHouse.MapTiler.GeoJson;
 
 public static class GeoJsonExtensions
 {
