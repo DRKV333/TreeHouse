@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>TreeHouse FoorMap Explorer</title>
+        <link
+            rel="stylesheet" href="https://unpkg.com/leaflet@2.0.0-alpha.1/dist/leaflet.css"
+            integrity="sha384-mduptj5Hiyp/jSH2p+p4A8UdSz0gnkrO1y37pdMuUTkAMEUuDsr12k7o4eQJXufp"
+            crossorigin="anonymous"
+        />
+        <link rel="stylesheet" href="./leaflet-burgermenu/leaflet-burgermenu.css" />
+        <script type="importmap">
+            {
+                "imports": {
+                    "leaflet": "https://unpkg.com/leaflet@2.0.0-alpha.1/dist/leaflet.js",
+                    "leaflet-burgermenu": "./leaflet-burgermenu/leaflet-burgermenu.js"
+                },
+                "integrity": {
+                    "https://unpkg.com/leaflet@2.0.0-alpha.1/dist/leaflet.js": "sha384-h3ZIZ5xsHHscwk3hG7EdHHGZxzCzl9tFuX0xxQhH/gnJW82Ll5+qFXqq7XTiJKen"
+                }
+            }
+        </script>
+        <style>
+        html, body, #map {
+            height: 100%;
+            margin: 0;
+        }
+        </style>
+        <script type="module">
+            import { Map, TileLayer, CRS, Projection, Transformation, Marker } from "leaflet";
+            import { BurgerMenuControl } from 'leaflet-burgermenu';
+
+            function createCRS(info, convInfo) {
+                const tileCount = 1 << convInfo.MaxZoom;
+                const scale = 1 / info.UnitsPerPixel / tileCount;
+
+                class ScaledSimple extends CRS.Simple {
+                    static projection = Projection.LonLat;
+                    static transformation = new Transformation(scale, -info.MinY * scale, -scale, convInfo.TileHeight + (info.MinX * scale));
+                    static infinite = true;
+                }
+
+                return ScaledSimple;
+            }
+
+            let map = new Map("map");
+
+            const infoResponse = await fetch("data/MapInfo.json");
+            const infoJson = await infoResponse.json();
+            const infoByPackage = Object.groupBy(infoJson, i => i.PackageName);
+
+            let menu = null;
+
+            async function loadMap(packageName, zoneName) {
+                const packageInfo = infoByPackage[packageName];
+                if (packageInfo == undefined)
+                    return;
+
+                const info = packageInfo.find(i => i.ZoneName == zoneName);
+                if (info == undefined)
+                    return;
+
+                const mapsPath = `data/maps/${packageName}/${zoneName}`;
+
+                const convInfoResponse = await fetch(`${mapsPath}/ConvertInfo.json`);
+                const convInfo = await convInfoResponse.json();
+
+                map.remove();
+                map = new Map("map", { crs: createCRS(info, convInfo) })
+
+                menu.addTo(map);
+
+                new TileLayer(`${mapsPath}/{z}/{x}/{y}.png`, {
+                    tileSize: [convInfo.TileWidth, convInfo.TileHeight],
+                    bounds: [[info.MinX, info.MinY], [info.MaxX, info.MaxY]],
+                    maxNativeZoom: convInfo.MaxZoom,
+                    maxZoom: convInfo.MaxZoom + 2,
+                    noWrap: true
+                }).addTo(map);
+
+                map.setView([0, 0], 0);
+            }
+
+            const menuItems = Object.entries(infoByPackage).map(([name, zones]) => {
+                const nameTrimmed = name.replace("_P_FloorMaps", "");
+
+                if (zones.length == 1)
+                {
+                    const zoneName = zones[0].ZoneName;
+                    return {
+                        title: `${nameTrimmed} - ${zoneName}`,
+                        onClick: () => { loadMap(name, zoneName); }
+                    };
+                }
+                else
+                {
+                    const zoneItems = zones.map(i => ({
+                        title: i.ZoneName,
+                        onClick: () => { loadMap(name, i.ZoneName); }
+                    }));
+
+                    return { title: nameTrimmed, menuItems: zoneItems };
+                }
+            });
+
+            menu = new BurgerMenuControl({
+                title: "main",
+                menuItems: menuItems
+            });
+            menu.addTo(map);
+        </script>
+    </head>
+    <body>
+        <div id="map"></div>
+    </body>
+</html>
