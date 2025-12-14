@@ -48,11 +48,11 @@ const int SlippyTileSize = 256;
 
 static async Task Convert(DirectoryInfo source, DirectoryInfo target)
 {
-    Image stiched = await LoadStiched(source);
-    await WriteSlippyTiles(stiched, target);
+    (int originalTileSize, Image stiched) = await LoadStiched(source);
+    await WriteSlippyTiles(stiched, target, originalTileSize);
 }
 
-static async Task WriteSlippyTiles(Image image, DirectoryInfo target)
+static async Task WriteSlippyTiles(Image image, DirectoryInfo target, int originalTileSize)
 {
     int bigDimention = Math.Max(image.Width, image.Height);
     int zoomLevels = Math.Max(1, (int)MathF.Ceiling(MathF.Log2((float)bigDimention / SlippyTileSize)) + 1);
@@ -62,6 +62,19 @@ static async Task WriteSlippyTiles(Image image, DirectoryInfo target)
     int tileHeight = image.Height / maxTileCount;
 
     Console.WriteLine($"Creating {tileWidth}x{tileHeight} slippy tiles with {zoomLevels} levels...");
+
+    ConvertInfo info = new()
+    {
+        TileWidth = tileWidth,
+        TileHeight = tileHeight,
+        OriginalTileSize = originalTileSize,
+        MaxZoom = zoomLevels - 1
+    };
+
+    using (Stream fs = File.Create(Path.Join(target.FullName, "ConvertInfo.json")))
+    {
+        await JsonSerializer.SerializeAsync(fs, info);
+    }
 
     for (int i = 0; i < zoomLevels; i++)
     {
@@ -107,7 +120,7 @@ static async Task WriteSlippyTiles(Image image, DirectoryInfo target)
     }
 }
 
-static async Task<Image> LoadStiched(DirectoryInfo source)
+static async Task<(int, Image)> LoadStiched(DirectoryInfo source)
 {
     (int xSize, int ySize, string ext) = DetectSizeInTiles(source);
     if (xSize == 0 || ySize == 0)
@@ -158,7 +171,7 @@ static async Task<Image> LoadStiched(DirectoryInfo source)
         throw;
     }
 
-    return stiched!;
+    return (tileSize, stiched!);
 }
 
 static (int, int, string) DetectSizeInTiles(DirectoryInfo source)
