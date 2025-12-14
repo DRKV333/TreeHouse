@@ -1,0 +1,80 @@
+/* Adapted from https://github.com/BenPortner/leaflet-burgermenu */
+
+/*
+MIT License
+
+Copyright (c) 2025 Benjamin W. Portner
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+*/
+
+/* Base menu container */
+.leaflet-control-burgermenu {
+    position: relative;
+    font-family: sans-serif;
+    user-select: none;
+}
+
+/* Menu toggle button */
+.burger-button {
+    background: white;
+    cursor: pointer;
+    font-size: 22px;
+    padding: 5px;
+    display: inline-block;
+    border: 2px solid #ccc;
+    border-radius: 3px;
+}
+
+/* Hide elements */
+.hidden {
+    display: none;
+}
+
+/* Menu items */
+.burger-menu,
+.burger-menu-item {
+    background: white;
+    cursor: pointer;
+    white-space: nowrap;
+    position: relative;
+    border: 1px solid #ccc;
+}
+
+.burger-menu-item {
+    padding: 5px;
+}
+.burger-menu-item:hover {
+    background-color: lightskyblue;
+  }
+
+/* Submenu container (level > 1) */
+[class*="level-0"]>.level-1,
+[class*="level-1"]>.level-2,
+[class*="level-2"]>.level-3 {
+    position: absolute;
+    top: 0;
+    left: 100%;
+    margin-left: 2px;
+    z-index: 9999;
+    background: white;
+    /* border: 1px solid #ccc; */
+    min-width: 150px;
+    box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.1);
+}
