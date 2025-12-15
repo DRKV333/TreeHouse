@@ -71,7 +71,6 @@ SOFTWARE.
     position: absolute;
     top: 0;
     left: 100%;
-    margin-left: 2px;
     z-index: 9999;
     background: white;
     /* border: 1px solid #ccc; */
