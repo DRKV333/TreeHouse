@@ -26,7 +26,7 @@
         }
         </style>
         <script type="module">
-            import { Map, TileLayer, CRS, Projection, Transformation, Marker } from "leaflet";
+            import { Map, TileLayer, CRS, Projection, Transformation, Marker, Point } from "leaflet";
             import { BurgerMenuControl } from 'leaflet-burgermenu';
 
             function createCRS(info, convInfo) {
@@ -64,14 +64,18 @@
                 const convInfoResponse = await fetch(`${mapsPath}/ConvertInfo.json`);
                 const convInfo = await convInfoResponse.json();
 
+                const crs = createCRS(info, convInfo);
+
                 map.remove();
-                map = new Map("map", { crs: createCRS(info, convInfo) })
+                map = new Map("map", { crs: crs })
 
                 menu.addTo(map);
 
+                const imageMax = crs.pointToLatLng(new Point(convInfo.TileWidth, 0), 0);
+
                 new TileLayer(`${mapsPath}/{z}/{x}/{y}.png`, {
                     tileSize: [convInfo.TileWidth, convInfo.TileHeight],
-                    bounds: [[info.MinX, info.MinY], [info.MaxX, info.MaxY]],
+                    bounds: [[info.MinX + 1, info.MinY + 1], [imageMax.lat - 1, imageMax.lng - 1]],
                     maxNativeZoom: convInfo.MaxZoom,
                     maxZoom: convInfo.MaxZoom + 2,
                     noWrap: true
