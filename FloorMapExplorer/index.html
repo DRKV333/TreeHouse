@@ -77,7 +77,10 @@
                     noWrap: true
                 }).addTo(map);
 
-                map.setView([0, 0], 0);
+                const centerX = (info.MinX + info.MaxX) / 2;
+                const centerY = (info.MinY + info.MaxY) / 2;
+
+                map.setView([centerX, centerY], 0);
             }
 
             const menuItems = Object.entries(infoByPackage).map(([name, zones]) => {
