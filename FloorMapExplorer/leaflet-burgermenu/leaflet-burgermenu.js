@@ -45,24 +45,28 @@ export class BurgerMenuControl extends Control {
         super(options);
     }
 
-    _generateSubMenus(item, itemEl, level) {
+    _generateSubMenus(root, item, itemEl, level) {
         if (item.menuItems && item.menuItems.length) {
             if (level > 0) {
                 itemEl.textContent += ` ${this.options.subMenuIndicator}`;
             }
             const classList = `burger-menu level-${level} hidden`;
             const subMenu = DomUtil.create('div', classList, itemEl);
-            DomEvent.on(itemEl, 'mouseover', function (e) {
+            const subContainer = DomUtil.create('div', 'burger-container', subMenu);
+            DomEvent.on(itemEl, 'mouseenter', function (e) {
+                const rootY = root.getBoundingClientRect().y;
+                const itemY = itemEl.getBoundingClientRect().y;
                 subMenu.classList.remove('hidden');
+                subMenu.style.top = (itemY - rootY) + "px";
             });
-            DomEvent.on(itemEl, 'mouseout', function (e) {
+            DomEvent.on(itemEl, 'mouseleave', function (e) {
                 subMenu.classList.add('hidden');
             });
             item.menuItems.forEach(subItem => {
                 const classList = `burger-menu-item level-${level}`;
-                const subItemEl = DomUtil.create('div', classList, subMenu);
+                const subItemEl = DomUtil.create('div', classList, subContainer);
                 subItemEl.textContent = subItem.title;
-                this._generateSubMenus(subItem, subItemEl, level + 1);
+                this._generateSubMenus(root, subItem, subItemEl, level + 1);
             });
         } else if (typeof item.onClick === 'function') {
             DomEvent.on(itemEl, 'click', function (e) {
@@ -75,12 +79,13 @@ export class BurgerMenuControl extends Control {
     onAdd(map) {
         const container = DomUtil.create('div', 'leaflet-control-burgermenu');
         DomEvent.disableClickPropagation(container);
+        DomEvent.disableScrollPropagation(container);
 
         const button = DomUtil.create('div', 'burger-button', container);
         button.innerHTML = this.options.menuIcon;
         button.title = this.options.title;
 
-        this._generateSubMenus(this.options, container, 0);
+        this._generateSubMenus(container, this.options, container, 0);
 
         return container;
     }
