@@ -83,13 +83,14 @@
                 map.setView([centerX, centerY], 0);
             }
 
-            const menuItems = Object.entries(infoJson).map(([packageName, zones]) => {
+            const menuItems = Object.keys(infoJson).sort().map((packageName) => {
+                const zones = infoJson[packageName];
                 const nameTrimmed = packageName.replace("_P_FloorMaps", "");
-                const zoneEntries = Object.entries(zones);
+                const zoneNames = Object.keys(zones).sort();
 
-                if (zoneEntries.length == 1)
+                if (zoneNames.length == 1)
                 {
-                    const zoneName = zoneEntries[0][0];
+                    const zoneName = zoneNames[0];
                     return {
                         title: `${nameTrimmed} - ${zoneName}`,
                         onClick: () => { loadMap(packageName, zoneName); }
@@ -97,7 +98,7 @@
                 }
                 else
                 {
-                    const zoneItems = zoneEntries.map(([zoneName]) => ({
+                    const zoneItems = zoneNames.map((zoneName) => ({
                         title: zoneName,
                         onClick: () => { loadMap(packageName, zoneName); }
                     }));
