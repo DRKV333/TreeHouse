@@ -38,16 +38,6 @@ fi
 datadir=$thisdir/data
 mkdir -p $datadir
 
-mapinfo=$datadir/MapInfo.json
-if [[ ! -f $mapinfo ]]; then
-    $thisdir/MapTiler.sh extract-info -p $otherlandupk -o $mapinfo
-fi
-
-geojson=$datadir/GeoJson
-if [[ ! -d $geojson ]]; then
-    $thisdir/MapTiler.sh extract-geojson -d $instance -i $mapinfo -o $thisdir/data/GeoJson
-fi
-
 maps=$tempdir/maps
 for p in $gamedir/UnrealEngine3/AmunGame/CookedPCConsole/*FloorMap*; do
     pfile=${p##*/}
@@ -66,3 +56,13 @@ for d in $tempdir/maps/*/*; do
         $thisdir/MapTiler.sh convert -s $d -t $convdir
     fi
 done
+
+mapinfo=$datadir/MapInfo.json
+if [[ ! -f $mapinfo ]]; then
+    $thisdir/MapTiler.sh extract-info -p $otherlandupk -i $convmaps -o $mapinfo
+fi
+
+geojson=$datadir/GeoJson
+if [[ ! -d $geojson ]]; then
+    $thisdir/MapTiler.sh extract-geojson -d $instance -i $mapinfo -o $thisdir/data/GeoJson
+fi

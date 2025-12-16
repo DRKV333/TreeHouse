@@ -2,11 +2,7 @@ namespace TreeHouse.MapTiler;
 
 public class MapInfo
 {
-    public string PackageName { get; set; } = "";
-
     public int WorldId { get; set; }
-
-    public string ZoneName { get; set; } = "";
 
     public float UnitsPerPixel { get; set; }
 
@@ -17,4 +13,10 @@ public class MapInfo
     public float MaxX { get; set; }
 
     public float MaxY { get; set; }
+
+    public int TileWidth { get; set; }
+
+    public int TileHeight { get; set; }
+
+    public int MaxZoom { get; set; }
 }

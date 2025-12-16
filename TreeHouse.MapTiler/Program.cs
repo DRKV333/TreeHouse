@@ -9,7 +9,9 @@ using System.Text.Json.Serialization.Metadata;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.Data.Sqlite;
+using Microsoft.VisualBasic;
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Metadata;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using SixLabors.ImageSharp.Processing.Processors.Transforms;
@@ -32,6 +34,7 @@ await new RootCommand()
     new Command("extract-info")
     {
         new Option<FileInfo>(["-p", "--package"]).ExistingOnly().Required(),
+        new Option<DirectoryInfo>(["-i", "--images"]).ExistingOnly(),
         new Option<FileInfo>(["-o", "--out"]).Required()
     }.WithHandler(ExtractInfo),
 
@@ -62,19 +65,6 @@ static async Task WriteSlippyTiles(Image image, DirectoryInfo target, int origin
     int tileHeight = image.Height / maxTileCount;
 
     Console.WriteLine($"Creating {tileWidth}x{tileHeight} slippy tiles with {zoomLevels} levels...");
-
-    ConvertInfo info = new()
-    {
-        TileWidth = tileWidth,
-        TileHeight = tileHeight,
-        OriginalTileSize = originalTileSize,
-        MaxZoom = zoomLevels - 1
-    };
-
-    using (Stream fs = File.Create(Path.Join(target.FullName, "ConvertInfo.json")))
-    {
-        await JsonSerializer.SerializeAsync(fs, info);
-    }
 
     for (int i = 0; i < zoomLevels; i++)
     {
@@ -203,7 +193,7 @@ static (int, int, string) DetectSizeInTiles(DirectoryInfo source)
     return (x, y, ext);
 }
 
-static void ExtractInfo(FileInfo packageFile, FileInfo outFile)
+static void ExtractInfo(FileInfo packageFile, DirectoryInfo imagesDir, FileInfo outFile)
 {
     Regex boxRegex = new(@"^\(Min=\(X=(?<minx>[-\d.]+),Y=(?<miny>[-\d.]+),Z=[-\d.]+[-\d.]+\),Max=\(X=(?<maxx>[-\d.]+),Y=(?<maxy>[-\d.]+),Z=[-\d.]+\),IsValid=1\)$");
 
@@ -211,23 +201,48 @@ static void ExtractInfo(FileInfo packageFile, FileInfo outFile)
 
     package.InitializePackage();
 
-    List<MapInfo> mapInfos = new();
+    Dictionary<string, Dictionary<string, MapInfo>> mapInfos;
+    if (imagesDir != null)
+    {
+        mapInfos = imagesDir.EnumerateDirectories()
+            .ToDictionary(
+                x => x.Name,
+                x => x.EnumerateDirectories()
+                    .ToDictionary(
+                        y => y.Name,
+                        y => MapInfoFromConverted(y).Result
+                    )
+            );
+    }
+    else
+    {
+        mapInfos = new();
+    }
 
     foreach (UObject obj in package.Objects)
     {
         if (obj.Class != null && obj.Class.Name == "RUFloorMapInfo")
         {
-            MapInfo info = new();
-            mapInfos.Add(info);
-
             obj.Load<UObjectStream>();
 
             string path = obj.GetPath();
             Console.WriteLine(path);
 
             string[] pathParts = path.Split('.');
-            info.PackageName = pathParts[0];
-            info.ZoneName = pathParts[1];
+            string packageName = pathParts[0];
+            string zoneName = pathParts[1];
+
+            MapInfo info;
+            if (imagesDir != null)
+            {
+                if (!mapInfos.TryGetValue(packageName, out var zones) || !zones.TryGetValue(zoneName, out info!))
+                    continue;
+            }
+            else
+            {
+                info = new MapInfo();
+                mapInfos.TryGetOrAdd(packageName, _ => new()).Add(zoneName, info);
+            }
 
             UDefaultProperty? idProp = obj.Properties.Find("WorldID");
             if (idProp != null)
@@ -252,16 +267,35 @@ static void ExtractInfo(FileInfo packageFile, FileInfo outFile)
     JsonSerializer.Serialize(fs, mapInfos);
 }
 
-static async Task ExtractGeoJson(FileInfo instanceDb, FileInfo mapInfoFile, DirectoryInfo output)
+static async Task<MapInfo> MapInfoFromConverted(DirectoryInfo dir)
 {
-    IList<MapInfo> mapInfos;
-    using (Stream fs = mapInfoFile.OpenRead())
+    MapInfo info = new()
     {
-        mapInfos = JsonSerializer.Deserialize<IList<MapInfo>>(fs)!;
+        MaxZoom = dir.EnumerateDirectories().Max(x => int.TryParse(x.Name, out int nameNum) ? nameNum : -1)
+    };
+
+    string zeroImage = Path.Combine(dir.FullName, "0", "0", "0.png");
+    if (File.Exists(zeroImage))
+    {
+        ImageInfo imageInfo = await Image.IdentifyAsync(zeroImage);
+        info.TileWidth = imageInfo.Width;
+        info.TileHeight = imageInfo.Height;
     }
 
-    Dictionary<int, List<(MapInfo info, GeoJsonFeatureCollection geoJson)>> zonesByWorldId = mapInfos
-        .GroupBy(x => x.WorldId)
+    return info;
+}
+
+static async Task ExtractGeoJson(FileInfo instanceDb, FileInfo mapInfoFile, DirectoryInfo output)
+{
+    Dictionary<string, Dictionary<string, MapInfo>> mapInfos;
+    using (Stream fs = mapInfoFile.OpenRead())
+    {
+        mapInfos = JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, MapInfo>>>(fs)!;
+    }
+
+    Dictionary<int, List<((string packageName, string zoneName, MapInfo info) info, GeoJsonFeatureCollection geoJson)>> zonesByWorldId = mapInfos
+        .SelectMany(p => p.Value.Select(z => (p.Key, z.Key, info: z.Value)))
+        .GroupBy(x => x.info.WorldId)
         .ToDictionary(
             x => x.Key,
             x => x.Select(z => (z, new GeoJsonFeatureCollection() { Features = new List<GeoJsonFeature>() })).ToList()
@@ -338,8 +372,8 @@ static async Task ExtractGeoJson(FileInfo instanceDb, FileInfo mapInfoFile, Dire
         else
         {
             (_, collection) = zones.FirstOrDefault(i =>
-                x >= i.info.MinX && x <= i.info.MaxX &&
-                y >= i.info.MinY && y <= i.info.MaxY
+                x >= i.info.info.MinX && x <= i.info.info.MaxX &&
+                y >= i.info.info.MinY && y <= i.info.info.MaxY
             );
         }
 
@@ -354,14 +388,14 @@ static async Task ExtractGeoJson(FileInfo instanceDb, FileInfo mapInfoFile, Dire
         TypeInfoResolver = new DefaultJsonTypeInfoResolver().WithGeoJsonTypesModifier()
     };
 
-    foreach ((MapInfo info, GeoJsonFeatureCollection geoJson) in zonesByWorldId.Values.SelectMany(x => x))
+    foreach (var zone in zonesByWorldId.Values.SelectMany(x => x))
     {
-        string outName = $"{info.PackageName}.{info.ZoneName}.geojson";
+        string outName = $"{zone.info.packageName}.{zone.info.zoneName}.geojson";
         Console.WriteLine(outName);
 
         string outPath = Path.Join(output.FullName, outName);
 
         using Stream fs = File.Create(outPath);
-        await JsonSerializer.SerializeAsync(fs, geoJson, jsonOptions);
+        await JsonSerializer.SerializeAsync(fs, zone.geoJson, jsonOptions);
     }
 }
