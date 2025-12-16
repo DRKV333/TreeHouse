@@ -45,6 +45,11 @@ for p in $gamedir/UnrealEngine3/AmunGame/CookedPCConsole/*FloorMap*; do
 
     if [[ ! -d $mapdir ]]; then
         $thisdir/umodel.sh $gamedir/UnrealEngine3/AmunGame/CookedPCConsole $tempdir/maps $pfile
+
+        # Red castle, umodel and uelib don't agree on this one.
+        if [[ -d $mapdir/RUFloorMapVolume_0 ]]; then
+            mv $mapdir/RUFloorMapVolume_0 $mapdir/RUFloorMapVolume
+        fi
     fi
 done
 
