@@ -26,7 +26,7 @@
         }
         </style>
         <script type="module">
-            import { Map, TileLayer, CRS, Projection, Transformation, Marker, Point } from "leaflet";
+            import { Map, TileLayer, CRS, Projection, Transformation, Point, GeoJSON, CircleMarker } from "leaflet";
             import { BurgerMenuControl } from 'leaflet-burgermenu';
 
             function createCRS(info) {
@@ -81,6 +81,15 @@
                 const centerY = (info.MinY + info.MaxY) / 2;
 
                 map.setView([centerX, centerY], 0);
+
+                const geoJsonResponse = await fetch(`data/GeoJson/${packageName}.${zoneName}.geojson`);
+                const geoJson = await geoJsonResponse.json();
+
+                new GeoJSON(geoJson, {pointToLayer: function(geoJsonPoint, latlng) {
+                    const marker = new CircleMarker(latlng, { radius: 5 });
+                    marker.bindTooltip(geoJsonPoint.properties.name);
+                    return marker;
+                }}).addTo(map);
             }
 
             const menuItems = Object.keys(infoJson).sort().map((packageName) => {
