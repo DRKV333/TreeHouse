@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="0 0 512 642"
+   version="1.1"
+   id="svg2"
+   sodipodi:docname="shopping-cart.svg"
+   inkscape:version="1.4.2 (ebf0e940d0, 2025-05-08)"
+   width="512"
+   height="642"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs2" />
+  <sodipodi:namedview
+     id="namedview2"
+     pagecolor="#505050"
+     bordercolor="#eeeeee"
+     borderopacity="1"
+     inkscape:showpageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#505050"
+     inkscape:zoom="0.55173664"
+     inkscape:cx="183.05835"
+     inkscape:cy="644.32915"
+     inkscape:window-width="1025"
+     inkscape:window-height="1080"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="svg2" />
+  <path
+     id="rect3"
+     style="fill:#3388ff;fill-opacity:1;stroke:#0045a5;stroke-width:9.90041;stroke-linecap:round;stroke-dasharray:none;stroke-opacity:1"
+     d="M 75.600098,4.9502048 A 70.650196,72.007907 0 0 0 4.9502048,76.957795 V 444.69121 A 70.650196,72.007907 0 0 0 75.600095,516.69882 H 139.99634 L 256,634.93179 372.00366,516.69882 h 64.39624 a 70.650196,72.007907 0 0 0 70.6499,-72.00761 V 76.957795 A 70.650196,72.007907 0 0 0 436.3999,4.9502048 Z" />
+  <g
+     class=""
+     id="g2">
+    <path
+       d="m 25.45,63.043 -4.364,17.463 8.73,2.18 60.624,15.16 29.402,44.1 62.44,187.32 -36.845,73.693 h 17.827 a 31.622,31.622 0 0 0 -3.264,14 c 0,17.567 14.433,32 32,32 17.567,0 32,-14.433 32,-32 0,-5.01 -1.178,-9.762 -3.264,-14 h 102.528 a 31.622,31.622 0 0 0 -3.264,14 c 0,17.567 14.433,32 32,32 17.567,0 32,-14.433 32,-32 0,-5.01 -1.178,-9.762 -3.264,-14 H 393 v -18 H 174.562 l 23,-46 h 192.924 l 70,-210 H 132.816 L 101.56,82.07 34.183,65.227 Z m 115.038,83.914 H 231 v 46 h -75.178 z m 108.512,0 h 78 v 46 h -78 z m 96,0 h 90.512 l -15.334,46 H 345 Z m -183.18,64 H 231 v 46 h -53.846 z m 87.18,0 h 78 v 46 h -78 z m 96,0 h 69.18 l -15.334,46 H 345 Z m -161.846,64 H 231 v 46 h -32.514 z m 65.846,0 h 78 v 46 h -78 z m 96,0 h 47.846 l -15.332,46 H 345 Z m -153,128 c 7.84,0 14,6.16 14,14 0,7.84 -6.16,14 -14,14 -7.84,0 -14,-6.16 -14,-14 0,-7.84 6.16,-14 14,-14 z m 160,0 c 7.84,0 14,6.16 14,14 0,7.84 -6.16,14 -14,14 -7.84,0 -14,-6.16 -14,-14 0,-7.84 6.16,-14 14,-14 z"
+       fill="#ffffff"
+       fill-opacity="1"
+       id="path2" />
+  </g>
+</svg>

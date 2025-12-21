@@ -58,4 +58,11 @@ public static class SqliteExtensions
         command.Parameters.AddWithValue("@path", path);
         command.ExecuteNonQuery();
     }
+
+    public static string? GetNullableString(this SqliteDataReader reader, int ordinal)
+    {
+        if (reader.IsDBNull(ordinal))
+            return null;
+        return reader.GetString(ordinal);
+    }
 }

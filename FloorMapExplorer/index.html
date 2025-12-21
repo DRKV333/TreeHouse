@@ -26,8 +26,19 @@
         }
         </style>
         <script type="module">
-            import { Map, TileLayer, CRS, Projection, Transformation, Point, GeoJSON, CircleMarker } from "leaflet";
+            import { Map, TileLayer, CRS, Projection, Transformation, Point, GeoJSON, CircleMarker, Icon, Marker } from "leaflet";
             import { BurgerMenuControl } from 'leaflet-burgermenu';
+
+            const iconWidth = 30;
+            const iconHeight = (642 / 512 * iconWidth);
+            const iconSettings = {
+                iconSize: [iconWidth, iconHeight],
+                iconAnchor: [iconWidth / 2, iconHeight],
+                tooltipAnchor: [0, -(iconHeight - iconWidth + iconWidth / 2)]
+            };
+
+            const portalIcon = new Icon({ iconUrl: "icons/portal.svg", ...iconSettings });
+            const vendorIcon = new Icon({ iconUrl: "icons/shopping-cart.svg", ...iconSettings });
 
             function createCRS(info) {
                 const tileCount = 1 << info.MaxZoom;
@@ -86,7 +97,14 @@
                 const geoJson = await geoJsonResponse.json();
 
                 new GeoJSON(geoJson, {pointToLayer: function(geoJsonPoint, latlng) {
-                    const marker = new CircleMarker(latlng, { radius: 5 });
+                    let marker = null;
+                    if (geoJsonPoint.properties.type == "Portal") {
+                        marker = new Marker(latlng, { icon: portalIcon });
+                    } else if (geoJsonPoint.properties.type == "Vendor") {
+                        marker = new Marker(latlng, { icon: vendorIcon });
+                    } else {
+                        marker = new CircleMarker(latlng, { radius: 5 });
+                    }
                     marker.bindTooltip(geoJsonPoint.properties.name);
                     return marker;
                 }}).addTo(map);

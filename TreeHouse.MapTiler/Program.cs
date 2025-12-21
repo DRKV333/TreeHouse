@@ -312,6 +312,8 @@ static async Task ExtractGeoJson(FileInfo instanceDb, FileInfo mapInfoFile, Dire
                                 Instance.uxInstanceGuid,
                                 Instance.sEditorName,
                                 Instance.dataJSON ->> "pos" AS pos,
+                                Instance.dataJSON ->> "npcType" AS npcType,
+                                Instance.dataJSON ->> "defb" AS defb,
                                 WorldDef.ixWorldID
                             FROM Instance
                             JOIN Zone ON Instance.uxZoneGuid = Zone.uxZoneGuid
@@ -328,7 +330,9 @@ static async Task ExtractGeoJson(FileInfo instanceDb, FileInfo mapInfoFile, Dire
         string instanceUid = reader.GetString(0);
         string instanceEditorName = reader.GetString(1);
         string instancePos = reader.GetString(2);
-        int worldId = reader.GetInt32(3);
+        string? instanceNpcType = reader.GetNullableString(3);
+        string? instanceDefb = reader.GetNullableString(4);
+        int worldId = reader.GetInt32(5);
 
         double[] posParsed;
         try
@@ -348,6 +352,14 @@ static async Task ExtractGeoJson(FileInfo instanceDb, FileInfo mapInfoFile, Dire
             continue;
         }
 
+        FeatureType type = FeatureType.Other;
+
+        if (instanceNpcType == "Vendor")
+            type = FeatureType.Vendor;
+
+        if (instanceDefb == "Portal")
+            type = FeatureType.Portal;
+
         double x = posParsed[0];
         double y = posParsed[1];
 
@@ -360,7 +372,8 @@ static async Task ExtractGeoJson(FileInfo instanceDb, FileInfo mapInfoFile, Dire
             },
             Properties = new JsonObject()
             {
-                ["name"] = instanceEditorName
+                ["name"] = instanceEditorName,
+                ["type"] = type.ToString()
             }
         };
 
