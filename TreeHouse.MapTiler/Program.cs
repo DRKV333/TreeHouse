@@ -260,6 +260,18 @@ static void ExtractInfo(FileInfo packageFile, DirectoryInfo imagesDir, FileInfo 
                 info.MaxX = float.Parse(match.Groups["maxx"].Value);
                 info.MaxY = float.Parse(match.Groups["maxy"].Value);
             }
+
+            // This map is actually misaligned ingame.
+            if (zoneName == "LM_Platform")
+            {
+                float inverseScale = info.UnitsPerPixel * (1 << info.MaxZoom);
+                float correction = inverseScale * -2;
+
+                info.MinX += correction;
+                info.MinY += correction;
+                info.MaxX += correction;
+                info.MaxY += correction;
+            }
         }
     }
 
