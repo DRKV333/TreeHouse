@@ -119,7 +119,7 @@
                 {
                     const zoneName = zoneNames[0];
                     return {
-                        title: `${nameTrimmed} - ${zoneName}`,
+                        title: nameTrimmed == zoneName ? nameTrimmed : `${nameTrimmed} - ${zoneName}`,
                         onClick: () => { loadMap(packageName, zoneName); }
                     };
                 }
