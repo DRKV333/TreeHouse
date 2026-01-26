@@ -12,7 +12,8 @@
             {
                 "imports": {
                     "leaflet": "https://unpkg.com/leaflet@2.0.0-alpha.1/dist/leaflet.js",
-                    "leaflet-burgermenu": "./leaflet-burgermenu/leaflet-burgermenu.js"
+                    "leaflet-burgermenu": "./leaflet-burgermenu/leaflet-burgermenu.js",
+                    "FloorMapExplorer": "./FloorMapExplorer.js"
                 },
                 "integrity": {
                     "https://unpkg.com/leaflet@2.0.0-alpha.1/dist/leaflet.js": "sha384-h3ZIZ5xsHHscwk3hG7EdHHGZxzCzl9tFuX0xxQhH/gnJW82Ll5+qFXqq7XTiJKen"
@@ -26,119 +27,13 @@
         }
         </style>
         <script type="module">
-            import { Map, TileLayer, CRS, Projection, Transformation, Point, GeoJSON, CircleMarker, Icon, Marker } from "leaflet";
-            import { BurgerMenuControl } from 'leaflet-burgermenu';
+            import { FloorMapExplorer } from "FloorMapExplorer";
 
-            const iconWidth = 30;
-            const iconHeight = (642 / 512 * iconWidth);
-            const iconSettings = {
-                iconSize: [iconWidth, iconHeight],
-                iconAnchor: [iconWidth / 2, iconHeight],
-                tooltipAnchor: [0, -(iconHeight - iconWidth + iconWidth / 2)]
-            };
-
-            const portalIcon = new Icon({ iconUrl: "icons/portal.svg", ...iconSettings });
-            const vendorIcon = new Icon({ iconUrl: "icons/shopping-cart.svg", ...iconSettings });
-
-            function createCRS(info) {
-                const tileCount = 1 << info.MaxZoom;
-                const scale = 1 / info.UnitsPerPixel / tileCount;
-
-                class ScaledSimple extends CRS.Simple {
-                    static projection = Projection.LonLat;
-                    static transformation = new Transformation(scale, -info.MinY * scale, -scale, info.TileHeight + (info.MinX * scale));
-                    static infinite = true;
-                }
-
-                return ScaledSimple;
-            }
-
-            let map = new Map("map");
-
-            const infoResponse = await fetch("data/MapInfo.json");
-            const infoJson = await infoResponse.json();
-
-            let menu = null;
-
-            async function loadMap(packageName, zoneName) {
-                const packageInfo = infoJson[packageName];
-                if (packageInfo == undefined)
-                    return;
-
-                const info = packageInfo[zoneName];
-                if (info == undefined)
-                    return;
-
-                const mapsPath = `data/maps/${packageName}/${zoneName}`;
-
-                const crs = createCRS(info);
-
-                map.remove();
-                map = new Map("map", { crs: crs })
-
-                menu.addTo(map);
-
-                const imageMax = crs.pointToLatLng(new Point(info.TileWidth, 0), 0);
-
-                new TileLayer(`${mapsPath}/{z}/{x}/{y}.png`, {
-                    tileSize: [info.TileWidth, info.TileHeight],
-                    bounds: [[info.MinX + 1, info.MinY + 1], [imageMax.lat - 1, imageMax.lng - 1]],
-                    maxNativeZoom: info.MaxZoom,
-                    maxZoom: info.MaxZoom + 2,
-                    noWrap: true
-                }).addTo(map);
-
-                const centerX = (info.MinX + info.MaxX) / 2;
-                const centerY = (info.MinY + info.MaxY) / 2;
-
-                map.setView([centerX, centerY], 0);
-
-                const geoJsonResponse = await fetch(`data/GeoJson/${packageName}.${zoneName}.geojson`);
-                const geoJson = await geoJsonResponse.json();
-
-                new GeoJSON(geoJson, {pointToLayer: function(geoJsonPoint, latlng) {
-                    let marker = null;
-                    if (geoJsonPoint.properties.type == "Portal") {
-                        marker = new Marker(latlng, { icon: portalIcon });
-                    } else if (geoJsonPoint.properties.type == "Vendor") {
-                        marker = new Marker(latlng, { icon: vendorIcon });
-                    } else {
-                        marker = new CircleMarker(latlng, { radius: 5 });
-                    }
-                    marker.bindTooltip(geoJsonPoint.properties.name);
-                    return marker;
-                }}).addTo(map);
-            }
-
-            const menuItems = Object.keys(infoJson).sort().map((packageName) => {
-                const zones = infoJson[packageName];
-                const nameTrimmed = packageName.replace("_P_FloorMaps", "");
-                const zoneNames = Object.keys(zones).sort();
-
-                if (zoneNames.length == 1)
-                {
-                    const zoneName = zoneNames[0];
-                    return {
-                        title: nameTrimmed == zoneName ? nameTrimmed : `${nameTrimmed} - ${zoneName}`,
-                        onClick: () => { loadMap(packageName, zoneName); }
-                    };
-                }
-                else
-                {
-                    const zoneItems = zoneNames.map((zoneName) => ({
-                        title: zoneName,
-                        onClick: () => { loadMap(packageName, zoneName); }
-                    }));
-
-                    return { title: nameTrimmed, menuItems: zoneItems };
-                }
+            document.addEventListener("DOMContentLoaded", async e => {
+                const mapElement = document.getElementById("map");
+                const map = new FloorMapExplorer(mapElement);
+                await map.loadInfo();
             });
-
-            menu = new BurgerMenuControl({
-                title: "main",
-                menuItems: menuItems
-            });
-            menu.addTo(map);
         </script>
     </head>
     <body>
