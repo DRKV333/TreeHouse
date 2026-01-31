@@ -1,5 +1,42 @@
 import { Map, TileLayer, CRS, Projection, Transformation, Point, GeoJSON, CircleMarker, Icon, Marker } from "leaflet";
-import { BurgerMenuControl } from 'leaflet-burgermenu';
+import { BurgerMenuControl } from "leaflet-burgermenu";
+
+class SelectableMarker extends Marker {
+    #icon;
+    #iconSelected;
+
+    constructor(latlng, icon, iconSelected) {
+        super(latlng, { icon: icon });
+
+        this.#icon = icon;
+        this.#iconSelected = iconSelected;
+    }
+
+    setSelected(selected) {
+        if (selected) {
+            this.setIcon(this.#iconSelected);
+        } else {
+            this.setIcon(this.#icon);
+        }
+    }
+}
+
+const MarkerColor = "#3388ff";
+const MarkerSelectedColor = "#ff3300";
+
+class SelectableCicleMarker extends CircleMarker {
+    constructor(latlng) {
+        super(latlng, { radius: 5, color: MarkerColor });
+    }
+
+    setSelected(selected) {
+        if (selected) {
+            this.setStyle({ color: MarkerSelectedColor });
+        } else {
+            this.setStyle({ color: MarkerColor });
+        }
+    }
+}
 
 export class FloorMapExplorer {
     #portalIcon = this.#createIcon("icons/portal.svg");
@@ -10,7 +47,11 @@ export class FloorMapExplorer {
     #menu;
 
     #infoJson;
-    
+
+    #selectionEnabled = false;
+    #selectedMarker = null;
+    #selectionListeners = [];
+
     constructor(element) {
         this.#element = element;
         this.#map = new Map(element);
@@ -65,6 +106,7 @@ export class FloorMapExplorer {
         const crs = this.#createCRS(info);
 
         this.#map.remove();
+        this.#selectedMarker = null;
         this.#map = new Map(this.#element, { crs: crs })
 
         this.#menu.addTo(this.#map);
@@ -91,17 +133,58 @@ export class FloorMapExplorer {
         new GeoJSON(geoJson, {pointToLayer: (geoJsonPoint, latlng) => {
             let marker = null;
             if (geoJsonPoint.properties.type == "Portal") {
-                marker = new Marker(latlng, { icon: this.#portalIcon });
+                marker = new SelectableMarker(latlng, this.#portalIcon, this.#portalIcon);
             } else if (geoJsonPoint.properties.type == "Vendor") {
-                marker = new Marker(latlng, { icon: this.#vendorIcon });
+                marker = new SelectableCicleMarker(latlng, this.#vendorIcon, this.#vendorIcon);
             } else {
-                marker = new CircleMarker(latlng, { radius: 5 });
+                marker = new SelectableCicleMarker(latlng);
             }
+
             marker.bindTooltip(geoJsonPoint.properties.name);
+
+            marker.on("click", e => {
+                if (!this.#selectionEnabled)
+                    return;
+
+                if (this.#selectedMarker == marker)
+                    return;
+
+                if (this.#selectedMarker)
+                    this.#selectedMarker.setSelected(false);
+
+                marker.setSelected(true);
+                this.#selectedMarker = marker;
+
+                for (let listener of this.#selectionListeners) {
+                    listener(marker.feature);
+                }
+            });
+
             return marker;
         }}).addTo(this.#map);
 
         return true;
+    }
+
+    setSelectionEnabled(enabled) {
+        this.#selectionEnabled = enabled;
+        if (!enabled) {
+            if (this.#selectedMarker)
+                this.#selectedMarker.setSelected(false);
+            this.#selectedMarker = null;
+        }
+    }
+
+    addSelectionListener(listener) {
+        this.#selectionListeners.push(listener);
+    }
+
+    removeSelectionListener(listener) {
+        this.#selectionListeners.splice(this.#selectionListeners.indexOf(listener), 1);
+    }
+
+    remove() {
+        this.#map.remove();
     }
 
     #createIcon(url) {
