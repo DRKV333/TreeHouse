@@ -212,3 +212,47 @@ export class FloorMapExplorer {
         return ScaledSimple;
     }
 }
+
+export class MessagingServer {
+    #eventHandler = this.#onWindowMessage.bind(this);
+    #selectionHandler = this.#onMapSelected.bind(this);
+
+    #map;
+    #messagePort;
+
+    constructor(map) {
+        this.#map = map;
+
+        window.addEventListener("message", this.#eventHandler);
+        this.#map.addSelectionListener(this.#selectionHandler);
+    }
+
+    remove() {
+        window.removeEventListener("message", this.#eventHandler);
+        this.#map.removeSelectionListener(this.#selectionHandler);
+        if (this.#messagePort) {
+            this.#messagePort.close();
+        }
+    }
+
+    #onWindowMessage(event) {
+        if (event.data == "InitFloorMapExplorerMessaging") {
+            this.#messagePort = event.ports[0];
+            this.#messagePort.onmessage = this.#onPortMessage.bind(this);
+
+            window.removeEventListener("message", this.#eventHandler);
+        }
+    }
+
+    #onPortMessage(event) {
+        if (event.data.type == "SetSelectionEnabled") {
+            this.#map.setSelectionEnabled(event.data.enabled);
+        }
+    }
+
+    #onMapSelected(feature) {
+        if (this.#messagePort) {
+            this.#messagePort.postMessage({ type: "SelectFeature", feature: feature });
+        }
+    }
+}

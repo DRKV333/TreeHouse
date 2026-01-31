@@ -27,12 +27,14 @@
         }
         </style>
         <script type="module">
-            import { FloorMapExplorer } from "FloorMapExplorer";
+            import { FloorMapExplorer, MessagingServer } from "FloorMapExplorer";
 
             document.addEventListener("DOMContentLoaded", async e => {
                 const mapElement = document.getElementById("map");
                 const map = new FloorMapExplorer(mapElement);
                 await map.loadInfo();
+
+                const messagingServer = new MessagingServer(map);
             });
         </script>
     </head>
