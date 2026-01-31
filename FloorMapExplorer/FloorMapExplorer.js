@@ -2,22 +2,26 @@ import { Map, TileLayer, CRS, Projection, Transformation, Point, GeoJSON, Circle
 import { BurgerMenuControl } from 'leaflet-burgermenu';
 
 export class FloorMapExplorer {
+    #portalIcon = this.#createIcon("icons/portal.svg");
+    #vendorIcon = this.#createIcon("icons/shopping-cart.svg");
+
+    #element;
+    #map;
+    #menu;
+
+    #infoJson;
     
     constructor(element) {
-        this.element = element;
-
-        this.map = new Map(element);
-
-        this.portalIcon = this.createIcon("icons/portal.svg");
-        this.vendorIcon = this.createIcon("icons/shopping-cart.svg");
+        this.#element = element;
+        this.#map = new Map(element);
     }
 
     async loadInfo() {
         const infoResponse = await fetch("data/MapInfo.json");
-        this.infoJson = await infoResponse.json();
+        this.#infoJson = await infoResponse.json();
 
-        const menuItems = Object.keys(this.infoJson).sort().map((packageName) => {
-            const zones = this.infoJson[packageName];
+        const menuItems = Object.keys(this.#infoJson).sort().map((packageName) => {
+            const zones = this.#infoJson[packageName];
             const nameTrimmed = packageName.replace("_P_FloorMaps", "");
             const zoneNames = Object.keys(zones).sort();
 
@@ -40,15 +44,15 @@ export class FloorMapExplorer {
             }
         });
 
-        this.menu = new BurgerMenuControl({
+        this.#menu = new BurgerMenuControl({
             title: "main",
             menuItems: menuItems
         });
-        this.menu.addTo(this.map);
+        this.#menu.addTo(this.#map);
     }
 
     async loadMap(packageName, zoneName) {
-        const packageInfo = this.infoJson[packageName];
+        const packageInfo = this.#infoJson[packageName];
         if (packageInfo == undefined)
             return false;
 
@@ -58,12 +62,12 @@ export class FloorMapExplorer {
 
         const mapsPath = `data/maps/${packageName}/${zoneName}`;
 
-        const crs = this.createCRS(info);
+        const crs = this.#createCRS(info);
 
-        this.map.remove();
-        this.map = new Map(this.element, { crs: crs })
+        this.#map.remove();
+        this.#map = new Map(this.#element, { crs: crs })
 
-        this.menu.addTo(this.map);
+        this.#menu.addTo(this.#map);
 
         const imageMax = crs.pointToLatLng(new Point(info.TileWidth, 0), 0);
 
@@ -74,12 +78,12 @@ export class FloorMapExplorer {
             maxZoom: info.MaxZoom + 2,
             noWrap: true,
             attribution: '<a href="https://github.com/DRKV333/TreeHouse">TreeHouse</a>'
-        }).addTo(this.map);
+        }).addTo(this.#map);
 
         const centerX = (info.MinX + info.MaxX) / 2;
         const centerY = (info.MinY + info.MaxY) / 2;
 
-        this.map.setView([centerX, centerY], 0);
+        this.#map.setView([centerX, centerY], 0);
 
         const geoJsonResponse = await fetch(`data/GeoJson/${packageName}.${zoneName}.geojson`);
         const geoJson = await geoJsonResponse.json();
@@ -87,20 +91,20 @@ export class FloorMapExplorer {
         new GeoJSON(geoJson, {pointToLayer: (geoJsonPoint, latlng) => {
             let marker = null;
             if (geoJsonPoint.properties.type == "Portal") {
-                marker = new Marker(latlng, { icon: this.portalIcon });
+                marker = new Marker(latlng, { icon: this.#portalIcon });
             } else if (geoJsonPoint.properties.type == "Vendor") {
-                marker = new Marker(latlng, { icon: this.vendorIcon });
+                marker = new Marker(latlng, { icon: this.#vendorIcon });
             } else {
                 marker = new CircleMarker(latlng, { radius: 5 });
             }
             marker.bindTooltip(geoJsonPoint.properties.name);
             return marker;
-        }}).addTo(this.map);
+        }}).addTo(this.#map);
 
         return true;
     }
 
-    createIcon(url) {
+    #createIcon(url) {
         const iconWidth = 30;
         const iconHeight = (642 / 512 * iconWidth);
 
@@ -112,7 +116,7 @@ export class FloorMapExplorer {
         });
     }
 
-    createCRS(info) {
+    #createCRS(info) {
         const tileCount = 1 << info.MaxZoom;
         const scale = 1 / info.UnitsPerPixel / tileCount;
 
