@@ -7,10 +7,10 @@ namespace TreeHouse.MapTiler.GeoJson;
 public abstract class GeoJsonGeometry : GeoJsonObject;
 
 [GeoJsonType]
-public abstract class CoordinatesGeometry<T> : GeoJsonGeometry
+public abstract class CoordinatesGeometry<T> : GeoJsonGeometry where T : class
 {
     [JsonPropertyName("coordinates")]
-    public required double[] Coordinates { get; set; } = null!;
+    public required T Coordinates { get; set; } = null!;
 }
 
 [GeoJsonType]
