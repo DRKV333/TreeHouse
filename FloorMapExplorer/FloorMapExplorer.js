@@ -6,7 +6,7 @@ class SelectableMarker extends Marker {
     #iconSelected;
 
     constructor(latlng, icon, iconSelected) {
-        super(latlng, { icon: icon });
+        super(latlng, { icon });
 
         this.#icon = icon;
         this.#iconSelected = iconSelected;
@@ -107,7 +107,7 @@ export class FloorMapExplorer {
 
         this.#map.remove();
         this.#selectedMarker = null;
-        this.#map = new Map(this.#element, { crs: crs })
+        this.#map = new Map(this.#element, { crs })
 
         this.#menu.addTo(this.#map);
 
@@ -247,12 +247,14 @@ export class MessagingServer {
     #onPortMessage(event) {
         if (event.data.type == "SetSelectionEnabled") {
             this.#map.setSelectionEnabled(event.data.enabled);
+        } else if (event.data.type == "LoadMap") {
+            this.#map.loadMap(event.data.packageName, event.data.zoneName);
         }
     }
 
     #onMapSelected(feature) {
         if (this.#messagePort) {
-            this.#messagePort.postMessage({ type: "SelectFeature", feature: feature });
+            this.#messagePort.postMessage({ type: "SelectFeature", feature });
         }
     }
 }
