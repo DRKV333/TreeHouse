@@ -14,7 +14,7 @@ internal class ScalarWrapperTypeDiscriminatingNodeDeserializer<TDiscminated, TWr
 {
     public static ScalarWrapperTypeDiscriminatingNodeDeserializer<TDiscminated, TWrapper> Instance { get; } = new();
 
-    public bool Deserialize(IParser reader, Type expectedType, Func<IParser, Type, object?> nestedObjectDeserializer, out object? value)
+    public bool Deserialize(IParser reader, Type expectedType, Func<IParser, Type, object?> nestedObjectDeserializer, out object? value, ObjectDeserializer rootDeserializer)
     {
         if (expectedType == typeof(TDiscminated) && reader.TryConsume<Scalar>(out Scalar? scalar))
         {
