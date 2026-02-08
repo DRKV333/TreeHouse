@@ -1,0 +1,19 @@
+<Solution>
+  <Folder Name="/UniDelta/">
+    <Project Path="UniDelta/UniDelta.Myers/UniDelta.Myers.csproj" />
+  </Folder>
+  <Project Path="TreeHouse.Common.CommandLine/TreeHouse.Common.CommandLine.csproj" />
+  <Project Path="TreeHouse.Common.SQLite/TreeHouse.Common.SQLite.csproj" />
+  <Project Path="TreeHouse.Common/TreeHouse.Common.csproj" />
+  <Project Path="TreeHouse.ImageFeatures/TreeHouse.ImageFeatures.csproj" />
+  <Project Path="TreeHouse.LocalizationDiffer/TreeHouse.LocalizationDiffer.csproj" />
+  <Project Path="TreeHouse.MapTiler/TreeHouse.MapTiler.csproj" />
+  <Project Path="TreeHouse.OtherParams/TreeHouse.OtherParams.csproj" />
+  <Project Path="TreeHouse.PacketDocs/TreeHouse.PacketDocs.csproj" />
+  <Project Path="TreeHouse.PacketFormat.Tests/TreeHouse.PacketFormat.Tests.csproj" />
+  <Project Path="TreeHouse.PacketFormat/TreeHouse.PacketFormat.csproj" />
+  <Project Path="TreeHouse.PacketParser/TreeHouse.PacketParser.csproj" />
+  <Project Path="TreeHouse.QuestEditor/TreeHouse.QuestEditor.csproj" />
+  <Project Path="TreeHouse.QuestIndexer/TreeHouse.QuestIndexer.csproj" />
+  <Project Path="TreeHouse.QuestModels/TreeHouse.QuestModels.csproj" />
+</Solution>
