@@ -5,7 +5,7 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="JsonSchema.Net" />
+    <PackageReference Include="Corvus.Json.Validator" />
     <PackageReference Include="Markdig" />
     <PackageReference Include="RazorBlade" />
     <PackageReference Include="WebMarkupMin.Core" />

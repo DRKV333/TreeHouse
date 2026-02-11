@@ -18,7 +18,7 @@
     <PackageVersion Include="RazorBlade" Version="0.11.0" />
     <PackageVersion Include="Markdig" Version="0.44.0" />
     <PackageVersion Include="WebMarkupMin.Core" Version="2.20.1" />
-    <PackageVersion Include="JsonSchema.Net" Version="5.4.3" /> <!-- TODO: License is weird, migrate to something else. -->
+    <PackageVersion Include="Corvus.Json.Validator" Version="4.5.3" />
 
     <!-- SQlite DB handling -->
     <PackageVersion Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.2" />

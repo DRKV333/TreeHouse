@@ -7,7 +7,6 @@ using System.Reflection;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Json.Schema;
 using Markdig;
 using Markdig.Parsers;
 using TreeHouse.Common;
@@ -19,6 +18,8 @@ using TreeHouse.PacketDocs.Codegen;
 using TreeHouse.PacketFormat;
 using WebMarkupMin.Core;
 using YamlDotNet.Serialization;
+using Corvus.Json.Validator;
+using Corvus.Json;
 
 IDeserializer yamlDeserializer = PacketFormatDocument.CreateDeserializer();
 IDeserializer yamlDeserializerForJson = new DeserializerBuilder().WithAttemptingUnquotedStringTypeDeserialization().Build();
@@ -48,7 +49,19 @@ void ValidateHandler(DirectoryInfo defsDir)
 {
     FileInfo schemaFile = new(Path.Join(defsDir.FullName, "otherland.packet.schema.yaml"));
     using JsonDocument schemaDoc = YamlToJson(schemaFile);
-    JsonSchema jsonSchema = schemaDoc.Deserialize<JsonSchema>()!;
+
+    string schemaId = "https://github.com/plehmkuhl/otherland-packet-formats/otherland.packet.schema.yaml";
+
+    PrepopulatedDocumentResolver resolver = new();
+    resolver.AddDocument(schemaId, schemaDoc);
+
+    JsonSchema jsonSchema = JsonSchema.From(
+        schemaId,
+        new JsonSchema.Options(
+            allowFileSystemAndHttpResolution: false,
+            additionalDocumentResolver: resolver
+        )
+    );
 
     bool hadError = false;
 
@@ -58,13 +71,18 @@ void ValidateHandler(DirectoryInfo defsDir)
             continue;
 
         using JsonDocument doc = YamlToJson(file);
-        EvaluationResults results = jsonSchema.Evaluate(doc, new EvaluationOptions() { OutputFormat = OutputFormat.Hierarchical });
+        ValidationContext context = jsonSchema.Validate(doc.RootElement, ValidationLevel.Detailed);
 
-        if (!results.IsValid)
+        if (!context.IsValid)
         {
             hadError = true;
-            Console.WriteLine($"{file.Name} failed to validate!");
-            PrintValidationError(results);
+
+            Console.WriteLine($"=== {file.Name} failed to validate! ===");
+
+            foreach (ValidationResult result in context.Results)
+            {
+                Console.WriteLine(result);
+            }
         }
     }
 
@@ -205,38 +223,6 @@ void CodegenHandler(DirectoryInfo defsDir, FileInfo output)
     }
 
     File.WriteAllText(output.FullName, new CodegenTemplate(joinedDocument).Render());
-}
-
-void PrintValidationError(EvaluationResults results, int indent = 1)
-{
-    if (results.IsValid)
-        return;
-
-    StringBuilder builder = new();
-
-    builder.Append(' ', indent * 4);
-
-    if (results.InstanceLocation.Segments.Length > 5)
-        builder.Append("../");
-    builder.AppendJoin('/', results.InstanceLocation.Segments.TakeLast(5).Select(x => x.Value));
-
-    builder.Append(" -> ");
-
-    if (results.EvaluationPath.Segments.Length > 5)
-        builder.Append("../");
-    builder.AppendJoin('/', results.EvaluationPath.Segments.TakeLast(5).Select(x => x.Value));
-
-    if (results.Errors != null)
-    {
-        builder.Append(": ").AppendJoin("; ", results.Errors.Values);
-    }
-    
-    Console.WriteLine(builder.ToString());
-
-    foreach (EvaluationResults detail in results.Details)
-    {
-        PrintValidationError(detail, indent + 1);
-    }
 }
 
 JsonDocument YamlToJson(FileInfo file)
