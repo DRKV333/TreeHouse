@@ -52,7 +52,7 @@ void ValidateHandler(DirectoryInfo defsDir)
 
     string schemaId = "https://github.com/plehmkuhl/otherland-packet-formats/otherland.packet.schema.yaml";
 
-    PrepopulatedDocumentResolver resolver = new();
+    using PrepopulatedDocumentResolver resolver = new();
     resolver.AddDocument(schemaId, schemaDoc);
 
     JsonSchema jsonSchema = JsonSchema.From(
