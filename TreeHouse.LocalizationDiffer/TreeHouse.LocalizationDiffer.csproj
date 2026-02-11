@@ -9,8 +9,4 @@
     <ProjectReference Include="..\TreeHouse.Common.CommandLine\TreeHouse.Common.CommandLine.csproj" />
     <ProjectReference Include="..\TreeHouse.Common.SQLite\TreeHouse.Common.SQLite.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="Microsoft.Data.Sqlite" />
-    <PackageReference Include="System.CommandLine" />
-  </ItemGroup>
 </Project>

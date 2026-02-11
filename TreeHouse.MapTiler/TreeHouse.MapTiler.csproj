@@ -6,7 +6,6 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="SixLabors.ImageSharp" />
-    <PackageReference Include="Microsoft.Data.Sqlite" />
     <PackageReference Include="Eliot.UELib" />
   </ItemGroup>
   <ItemGroup>

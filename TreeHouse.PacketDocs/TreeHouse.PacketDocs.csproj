@@ -8,7 +8,6 @@
     <PackageReference Include="JsonSchema.Net" />
     <PackageReference Include="Markdig" />
     <PackageReference Include="RazorBlade" />
-    <PackageReference Include="System.CommandLine" />
     <PackageReference Include="WebMarkupMin.Core" />
   </ItemGroup>
   <ItemGroup>

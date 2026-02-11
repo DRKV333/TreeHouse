@@ -11,8 +11,4 @@
     <ProjectReference Include="..\TreeHouse.QuestModels\TreeHouse.QuestModels.csproj" />
     <ProjectReference Include="..\TreeHouse.Common.SQLite\TreeHouse.Common.SQLite.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="Microsoft.Data.Sqlite" />
-    <PackageReference Include="System.CommandLine" />
-  </ItemGroup>
 </Project>
