@@ -4,7 +4,7 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Elastic.Clients.Elasticsearch" Version="9.3.0" />
-    <PackageReference Include="MongoDB.Driver" Version="3.6.0" />
+    <PackageReference Include="Elastic.Clients.Elasticsearch" />
+    <PackageReference Include="MongoDB.Driver" />
   </ItemGroup>
 </Project>

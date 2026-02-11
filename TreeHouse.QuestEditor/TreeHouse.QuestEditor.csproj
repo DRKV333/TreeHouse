@@ -4,7 +4,7 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Blazor.Bootstrap" Version="3.5.0" />
+    <PackageReference Include="Blazor.Bootstrap" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\TreeHouse.QuestModels\TreeHouse.QuestModels.csproj" />
