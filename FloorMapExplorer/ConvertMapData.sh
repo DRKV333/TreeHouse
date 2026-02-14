@@ -35,7 +35,7 @@ if [[ ! -f $otherlandupk ]]; then
     $thisdir/decompress.sh $gamedir/UnrealEngine3/AmunGame/CookedPCConsole $tempdir Otherland.upk
 fi
 
-datadir=$thisdir/data
+datadir=$thisdir/wwwroot/data
 mkdir -p $datadir
 
 maps=$tempdir/maps
