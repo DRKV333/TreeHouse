@@ -119,7 +119,7 @@ export class FloorMapExplorer {
             maxNativeZoom: info.MaxZoom,
             maxZoom: info.MaxZoom + 2,
             noWrap: true,
-            attribution: '<a href="https://github.com/DRKV333/TreeHouse">TreeHouse</a>'
+            attribution: '<a href="https://github.com/DRKV333/TreeHouse" target="_blank">TreeHouse</a>'
         }).addTo(this.#map);
 
         const centerX = (info.MinX + info.MaxX) / 2;
